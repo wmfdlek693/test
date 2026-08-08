@@ -3,7 +3,7 @@ const STATE_KEY='najjubtype-state-v4';
 const avatar='./assets/avatar_blank.png';
 
 const demoPosts=[
-  {id:'demo-1',title:'라인을 준수하세요',author:'옥잠',link:'#',quote:`시험 끝났어 유나야.\n\n사실 널 시험하기보다는 날 시험한 거였어.\n\n이제 알 것 같아. 너를 믿고 싶어. 네 마음을 믿고 싶어.\n\n좋아해. 선 넘어도 돼. 그래도 돼.`,reason:'이혼부부 과거 존맛',createdAt:'2026-08-09T03:30:00+09:00',baseLikes:8,comments:[{id:'demo-comment-1',text:'연반중에최고~~~~내생에모든것중에최고',createdAt:'2026-06-24T05:31:00+09:00'}]},
+  {id:'demo-1',title:'라인을 준수하세요',author:'옥잠',link:'#',quote:`시험 끝났어 유나야.\n\n사실 널 시험하기보다는 날 시험한 거였어.\n\n이제 알 것 같아. 너를 믿고 싶어. 네 마음을 믿고 싶어.\n\n좋아해. 선 넘어도 돼. 그래도 돼.`,reason:'',createdAt:'2026-08-09T03:30:00+09:00',baseLikes:8,comments:[]},
   {id:'demo-2',title:'라인을 준수하세요',author:'옥잠',link:'#',quote:`너 이제 진짜 큰일 난 거야.\n\n나 같은 애들은 한 번 손에 쥐면 절대 안 놔주거든.\n\n노유나가 비죽 웃었다. 멱살이 틀어 잡힌 채 듣는 경고가 뭐가 그리 좋다고 웃었다. 살벌하지만 달콤한 경고가 사랑스러웠다. 참을 수 없이 애타는 속에 고개를 비스듬히 틀며 다가갔다. 단숨에 좁혀진 거리에 놀라 숨을 참는 얼굴 위로 속삭였다. 큰일? 김주은 네가 잘 몰라서 그러는데....\n\n- 그거야말로 내가 바라는 바야.`,reason:'',createdAt:'2026-08-09T03:20:00+09:00',baseLikes:0,comments:[]},
   {id:'demo-3',title:'야 나 좀 아포',author:'옥잠',link:'#',quote:`- 상식적으로, 도의적으로, 인간적으로.\n- ....\n- ....한 번 더 하자.\n- 나도 그 말 하려고 했어...`,reason:'',createdAt:'2026-08-09T03:10:00+09:00',baseLikes:0,comments:[]},
   {id:'demo-4',title:'꼬우면 한판 떠',author:'옥잠',link:'#',quote:`- 야아 너 다 알면서 왜 그러냐 진짜...\n- 빨리 말해. 머리 굴리지 말고.\n- 아... 진짜 주은아 쫌....\n- 예~ 할 말 있으세요?\n- ...귀 대봐바.\n\n진짜니너무귀여우니까그만해... 니 너무 예뻐서 나 죽겠다고 진짜... 존나 사랑해 개사랑해 여기 빨리 파토내고 너 들쳐업고 집으로 튀고 싶어... 이상입니다.`,reason:'',createdAt:'2026-08-09T03:00:00+09:00',baseLikes:0,comments:[]}
