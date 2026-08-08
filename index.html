@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#ffffff" />
   <title>NAJJUBTYPE</title>
   <meta name="description" content="냐쭙 명대사·명장면 아카이브" />
@@ -10,27 +10,29 @@
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <h1>NAJJUBTYPE</h1>
-      <button class="icon-btn header-info" id="aboutBtn" aria-label="소개">ⓘ</button>
-    </div>
+  <header>
+    <div class="header-left"><h1>NAJJUBTYPE</h1></div>
   </header>
 
-  <main class="main">
+  <div class="main">
     <section class="submit-card" aria-labelledby="submit-title">
-      <button class="submit-toggle" id="submitToggle" type="button" aria-expanded="false">
-        <span id="submit-title">+ 명대사 추천</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 10 4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <div class="submit-form" id="submitForm" hidden>
-        <div class="form-row"><textarea id="quoteInput" rows="4" maxlength="700" placeholder="명대사 · 명장면 (지문 가능)"></textarea></div>
-        <div class="form-row"><input id="titleInput" maxlength="120" placeholder="작품 제목" /></div>
-        <div class="form-row"><input id="authorInput" maxlength="80" placeholder="작가명" /></div>
-        <div class="form-row"><input id="linkInput" maxlength="300" placeholder="포스타입 링크 (선택)" /></div>
-        <div class="form-row"><textarea id="reasonInput" rows="2" maxlength="300" placeholder="추천 이유 · 한줄평 (선택)"></textarea></div>
-        <div class="form-actions"><button class="btn primary" id="submitPostBtn">제출</button></div>
+      <h2 id="submit-title">+ 명대사 추천</h2>
+      <div class="form-row">
+        <textarea id="quoteInput" rows="3" maxlength="700" placeholder="명대사 (지문 가능)"></textarea>
       </div>
+      <div class="form-row">
+        <input id="titleInput" type="text" maxlength="120" placeholder="제목" />
+      </div>
+      <div class="form-row">
+        <input id="authorInput" type="text" maxlength="80" placeholder="작가" />
+      </div>
+      <div class="form-row">
+        <input id="linkInput" type="text" maxlength="300" placeholder="링크 (터진건 걍 비워두세염)" />
+      </div>
+      <div class="form-row">
+        <textarea id="reasonInput" rows="2" maxlength="300" placeholder="이유"></textarea>
+      </div>
+      <button class="btn" id="submitPostBtn">제출</button>
     </section>
 
     <nav class="sort-bar" aria-label="정렬">
@@ -44,50 +46,32 @@
     </section>
 
     <section id="rankView" class="rank-view" hidden>
-      <div class="rank-intro" id="rankIntro">
-        <div>
-          <p class="eyebrow">NAJJUBTYPE SORT</p>
-          <h2>냐쭙 명장면 소트</h2>
-          <p>둘 중 더 마음에 드는 장면을 고르면 전체 순위를 만들어줘요.</p>
-        </div>
-        <button class="btn primary" id="startSortBtn">소트 시작</button>
+      <div class="tournament-header">
+        <h2>냐쭙 명장면 소트</h2>
+        <button class="tournament-btn" id="startSortBtn">소트 시작</button>
       </div>
+
+      <div id="rankIntro" class="rank-intro">
+        <p>둘 중 더 마음에 드는 장면을 고르면 전체 순위를 만들어줘요.</p>
+      </div>
+
       <div id="rankGame" class="rank-game" hidden>
-        <div class="rank-progress-wrap"><span id="rankProgress">1 / 1</span><div class="progress-track"><div id="rankProgressBar"></div></div></div>
-        <p class="rank-guide">더 좋아하는 쪽을 선택</p>
+        <div class="match-progress"><span class="round-label">소트</span> <span id="rankProgress">1 / 1</span></div>
+        <div class="progress-track"><div id="rankProgressBar"></div></div>
         <div class="compare-grid" id="compareGrid"></div>
       </div>
+
       <div id="rankResult" class="rank-result" hidden>
-        <div class="result-head"><p class="eyebrow">MY RESULT</p><h2>내 소트 결과</h2></div>
-        <div id="rankingList" class="ranking-list"></div>
-        <div class="result-actions"><button class="btn secondary" id="restartSortBtn">다시 하기</button><button class="btn primary" id="shareSortBtn">결과 공유</button></div>
-      </div>
-    </section>
-  </main>
-
-  <div class="modal-overlay" id="aboutModal" aria-hidden="true">
-    <div class="modal-box small" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
-      <div class="modal-header"><h3 id="aboutTitle">NAJJUBTYPE</h3><button class="close-modal" data-close="aboutModal" aria-label="닫기">×</button></div>
-      <div class="modal-body prose">
-        <p>냐쭙 포타의 명대사와 명장면을 누구나 추천하고 모아보는 아카이브.</p>
-        <p class="muted">현재 버전은 UI 프로토타입이라 작성 내용·추천·댓글은 이 브라우저에만 저장됩니다.</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="commentModal" aria-hidden="true">
-    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="commentTitle">
-      <div class="modal-header"><h3 id="commentTitle">댓글</h3><button class="close-modal" data-close="commentModal" aria-label="닫기">×</button></div>
-      <div class="modal-body comments-modal-body">
-        <div id="commentPostPreview"></div>
-        <div id="commentList" class="comment-list"></div>
-        <div class="add-comment-form">
-          <div class="comment-input-header"><img src="./assets/avatar_blank.png" alt=""><span>익명</span></div>
-          <textarea id="commentInput" rows="2" maxlength="300" placeholder="공감할래말래"></textarea>
-          <div class="comment-form-row"><button class="btn primary small-btn" id="commentSubmitBtn">등록</button></div>
+        <div class="tournament-result">
+          <h3>내 소트 결과</h3>
+        </div>
+        <div id="rankingList" class="result-ranking"></div>
+        <div class="result-actions">
+          <button class="btn" id="restartSortBtn">다시 하기</button>
+          <button class="btn" id="shareSortBtn">결과 공유</button>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 
   <div class="modal-overlay" id="editModal" aria-hidden="true">
@@ -100,12 +84,11 @@
         <label>포스타입 링크<input id="editLink"></label>
         <label>추천 이유<textarea id="editReason" rows="2"></textarea></label>
       </div>
-      <div class="modal-footer"><button class="btn secondary" data-close="editModal">취소</button><button class="btn primary" id="saveEditBtn">저장</button></div>
+      <div class="modal-footer"><button class="btn-cancel" data-close="editModal">취소</button><button class="btn-confirm" id="saveEditBtn">저장</button></div>
     </div>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
-
   <script src="./app.js"></script>
 </body>
 </html>
