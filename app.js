@@ -92,23 +92,48 @@ function toggleComments(id, triggerEl){
   const btn=card.querySelector('.toggle-comments');
   if(btn)btn.setAttribute('aria-expanded',String(open));
 }
-function submitComment(id){
-  const input=document.getElementById(`comment-text-${id}`),text=input?.value.trim();
+function submitComment(id, triggerEl){
+  // 같은 게시물이 피드/소트 랭킹에 동시에 렌더링될 수 있으므로
+  // document.getElementById()로 전역 textarea를 잡지 않고, 실제로 누른 등록 버튼의 카드 안에서 찾는다.
+  const card=triggerEl?.closest('.menu-card, .rank-post-card, .leaderboard-post, .post-card') || document.getElementById(`card-${id}`);
+  const section=triggerEl?.closest('.comments-section') || card?.querySelector('.comments-section');
+  const input=section?.querySelector('textarea');
+  const text=input?.value.trim();
   if(!text){showToast('댓글을 입력해줘.');return}
+
   ui.comments[id]=ui.comments[id]||[];
   ui.comments[id].push({id:'comment-'+Date.now(),text,createdAt:new Date().toISOString()});
   saveState();
+
   const p=posts.find(x=>x.id===id);
-  const card=document.getElementById(`card-${id}`);
-  if(p&&card){
+  if(p&&section){
     const cs=commentsFor(p);
-    const list=card.querySelector('.comment-list');
+    const list=section.querySelector('.comment-list');
     if(list)list.innerHTML=renderCommentsHTML(cs);
-    const countBtn=card.querySelector('.toggle-comments');
-    if(countBtn)countBtn.innerHTML=`${icons.comment}${cs.length}`;
-    card.querySelector('.comments-section')?.classList.add('open');
+
+    // 지금 보고 있는 카드의 댓글 수를 즉시 갱신한다.
+    const countBtn=card?.querySelector('.toggle-comments');
+    if(countBtn){
+      countBtn.innerHTML=`${icons.comment}${cs.length}`;
+      countBtn.setAttribute('aria-expanded','true');
+    }
+
+    // 등록 직후 작성한 첫 댓글도 바로 보이도록 댓글 영역을 유지한다.
+    section.classList.add('open');
     input.value='';
-    input.focus();
+    requestAnimationFrame(()=>{
+      const last=list?.lastElementChild;
+      last?.scrollIntoView({block:'nearest',behavior:'smooth'});
+      input.focus();
+    });
+  }
+
+  // 같은 게시물이 다른 화면에도 보이면 댓글 숫자만 동기화한다.
+  if(p){
+    const total=commentsFor(p).length;
+    document.querySelectorAll(`[data-comment="${CSS.escape(id)}"]`).forEach(btn=>{
+      if(btn!==card?.querySelector('.toggle-comments')) btn.innerHTML=`${icons.comment}${total}`;
+    });
   }
   showToast('댓글을 등록했어요.');
 }
@@ -268,7 +293,7 @@ document.addEventListener('click',e=>{
   const menuBtn=e.target.closest('[data-menu]');if(menuBtn){e.stopPropagation();const menu=document.getElementById(`menu-${menuBtn.dataset.menu}`);$$('.post-dropdown.show').filter(x=>x!==menu).forEach(x=>x.classList.remove('show'));menu?.classList.toggle('show');return}
   const like=e.target.closest('[data-like]');if(like){toggleLike(like.dataset.like);return}
   const comment=e.target.closest('[data-comment]');if(comment){toggleComments(comment.dataset.comment, comment);return}
-  const submit=e.target.closest('[data-submit-comment]');if(submit){submitComment(submit.dataset.submitComment);return}
+  const submit=e.target.closest('[data-submit-comment]');if(submit){submitComment(submit.dataset.submitComment, submit);return}
   const save=e.target.closest('[data-save]');if(save){toggleSave(save.dataset.save);return}
   const share=e.target.closest('[data-share]');if(share){sharePost(share.dataset.share);return}
   const edit=e.target.closest('[data-edit]');if(edit){openEdit(edit.dataset.edit);return}
