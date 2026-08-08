@@ -46,30 +46,40 @@
     </section>
 
     <section id="rankView" class="rank-view" hidden>
-      <div class="tournament-header">
-        <h2>냐쭙 명장면 소트</h2>
-        <button class="tournament-btn" id="startSortBtn">소트 시작</button>
-      </div>
-
-      <div id="rankIntro" class="rank-intro">
-        <p>둘 중 더 마음에 드는 장면을 고르면 전체 순위를 만들어줘요.</p>
-      </div>
-
-      <div id="rankGame" class="rank-game" hidden>
-        <div class="match-progress"><span class="round-label">소트</span> <span id="rankProgress">1 / 1</span></div>
-        <div class="progress-track"><div id="rankProgressBar"></div></div>
-        <div class="compare-grid" id="compareGrid"></div>
-      </div>
-
-      <div id="rankResult" class="rank-result" hidden>
-        <div class="tournament-result">
-          <h3>내 소트 결과</h3>
+      <div id="tournamentLeaderboard">
+        <div class="tournament-header">
+          <h2>🏆 명장면/명대사 소트 랭킹</h2>
+          <div class="tournament-actions">
+            <button class="tournament-btn tournament-btn-ghost" id="tournamentHistoryBtn">내 기록</button>
+            <button class="tournament-btn" id="tournamentPlayBtn">참여하기</button>
+          </div>
         </div>
-        <div id="rankingList" class="result-ranking"></div>
-        <div class="result-actions">
-          <button class="btn" id="restartSortBtn">다시 하기</button>
-          <button class="btn" id="shareSortBtn">결과 공유</button>
+        <div id="rankingList"></div>
+      </div>
+
+      <div id="tournamentGame" hidden>
+        <div class="tournament-header">
+          <h2 id="gameTitle">라운드 선택</h2>
+          <div class="tournament-actions">
+            <button class="tournament-btn tournament-btn-ghost" id="gameRankingBtn">랭킹 보기</button>
+            <button class="tournament-btn" id="tournamentBackBtn" hidden>돌아가기</button>
+          </div>
         </div>
+        <div id="roundSelect" class="round-select"></div>
+        <div id="matchArea"></div>
+      </div>
+
+      <div id="tournamentResult" hidden></div>
+
+      <div id="tournamentHistory" hidden>
+        <div class="tournament-header">
+          <h2>📋 내 소트 기록</h2>
+          <div class="tournament-actions">
+            <button class="tournament-btn tournament-btn-ghost" id="historyRankingBtn">랭킹 보기</button>
+            <button class="tournament-btn" id="historyPlayBtn">참여하기</button>
+          </div>
+        </div>
+        <div id="historyList"></div>
       </div>
     </section>
   </div>

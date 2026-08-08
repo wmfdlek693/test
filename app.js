@@ -20,7 +20,7 @@ const $$=s=>[...document.querySelectorAll(s)];
 
 function loadPosts(){try{return [...demoPosts,...JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')]}catch{return [...demoPosts]}}
 function saveCustomPosts(){localStorage.setItem(STORAGE_KEY,JSON.stringify(posts.filter(p=>!String(p.id).startsWith('demo-'))))}
-function loadState(){try{return Object.assign({liked:[],saved:[],likeDelta:{},comments:{},openComments:[],lastSort:null},JSON.parse(localStorage.getItem(STATE_KEY)||'{}'))}catch{return {liked:[],saved:[],likeDelta:{},comments:{},openComments:[],lastSort:null}}}
+function loadState(){try{return Object.assign({liked:[],saved:[],likeDelta:{},comments:{},openComments:[],lastSort:null,sortHistory:[],sortStats:{}},JSON.parse(localStorage.getItem(STATE_KEY)||'{}'))}catch{return {liked:[],saved:[],likeDelta:{},comments:{},openComments:[],lastSort:null,sortHistory:[],sortStats:{}}}}
 function saveState(){localStorage.setItem(STATE_KEY,JSON.stringify(ui))}
 function showToast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>el.classList.remove('show'),2300)}
 function esc(s=''){return String(s).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]))}
@@ -46,7 +46,7 @@ function renderFeed(){
 }
 
 function renderCard(p){
-  const cs=commentsFor(p),liked=ui.liked.includes(p.id),saved=ui.saved.includes(p.id),editable=!String(p.id).startsWith('demo-'),link=safeLink(p.link),open=ui.openComments.includes(p.id);
+  const cs=commentsFor(p),liked=ui.liked.includes(p.id),saved=ui.saved.includes(p.id),editable=!String(p.id).startsWith('demo-'),link=safeLink(p.link),open=false;
   return `<div class="menu-card" id="card-${esc(p.id)}"><div class="menu-card-body" data-menu-id="${esc(p.id)}">
     <div class="post-header">
       <div class="post-header-left"><div class="post-avatar"><img src="${avatar}" alt="" width="32" height="32"></div><div class="post-header-info"><div class="post-author-badge">${esc(p.author||'익명')}</div><span class="post-meta-line">${timeAgo(p.createdAt)} · 냐쭙 아카이브</span></div></div>
@@ -61,29 +61,42 @@ function renderCard(p){
 
 function renderCommentsHTML(cs){return cs.map(c=>`<div class="comment-item"><img class="comment-avatar" src="${avatar}" alt=""><div class="comment-body"><div class="comment-header"><span class="comment-nickname">익명</span><span class="comment-time">${timeAgo(c.createdAt)}</span></div><div class="comment-text">${esc(c.text)}</div></div></div>`).join('')}
 
-function setView(view){currentView=view;$$('.sort-bar button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));const rank=view==='rank';$('#feedView').hidden=rank;$('#rankView').hidden=!rank;if(!rank)renderFeed()}
+function setView(view){currentView=view;$$('.sort-bar button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));const rank=view==='rank';$('#feedView').hidden=rank;$('#rankView').hidden=!rank;if(rank){showTournamentSection('leaderboard');loadTournamentLeaderboard()}else renderFeed()}
 
 function submitPost(){const quote=$('#quoteInput').value.trim(),title=$('#titleInput').value.trim(),author=$('#authorInput').value.trim(),link=$('#linkInput').value.trim(),reason=$('#reasonInput').value.trim();if(!quote||!title||!author){showToast('명대사, 제목, 작가는 입력해줘.');return}posts.push({id:'user-'+Date.now(),title,author,link,quote,reason,createdAt:new Date().toISOString(),baseLikes:0,comments:[]});saveCustomPosts();['#quoteInput','#titleInput','#authorInput','#linkInput','#reasonInput'].forEach(id=>$(id).value='');setView('new');showToast('명대사가 등록됐어요.')}
-function toggleLike(id){const p=posts.find(x=>x.id===id);if(!p)return;const liked=ui.liked.includes(id);ui.liked=liked?ui.liked.filter(x=>x!==id):[...ui.liked,id];ui.likeDelta[id]=(ui.likeDelta[id]||0)+(liked?-1:1);saveState();renderFeed()}
-function toggleSave(id){const saved=ui.saved.includes(id);ui.saved=saved?ui.saved.filter(x=>x!==id):[...ui.saved,id];saveState();renderFeed();showToast(saved?'보관함에서 뺐어요.':'보관함에 저장했어요.')}
-function toggleComments(id){
-  const card=document.getElementById(`card-${id}`);
-  const section=card?.querySelector('.comments-section');
-  if(!section)return;
-  const willOpen=!section.classList.contains('open');
-  section.classList.toggle('open',willOpen);
-  ui.openComments=willOpen?[...new Set([...ui.openComments,id])]:ui.openComments.filter(x=>x!==id);
+function toggleLike(id){
+  const p=posts.find(x=>x.id===id);if(!p)return;
+  const liked=ui.liked.includes(id);
+  ui.liked=liked?ui.liked.filter(x=>x!==id):[...ui.liked,id];
+  ui.likeDelta[id]=(ui.likeDelta[id]||0)+(liked?-1:1);
   saveState();
+  const card=document.getElementById(`card-${id}`);
+  const btn=card?.querySelector('[data-like]');
+  if(btn){btn.classList.toggle('active',!liked);const count=btn.querySelector('span');if(count)count.textContent=likeCount(p);}
+}
+function toggleSave(id){
+  const saved=ui.saved.includes(id);
+  ui.saved=saved?ui.saved.filter(x=>x!==id):[...ui.saved,id];
+  saveState();
+  document.getElementById(`card-${id}`)?.querySelector('[data-save]')?.classList.toggle('saved',!saved);
+  showToast(saved?'보관함에서 뺐어요.':'보관함에 저장했어요.');
+}
+function toggleComments(id, triggerEl){
+  // 칼윈 아카이브 방식: 누른 게시물 카드 안에서만 댓글 영역을 토글한다.
+  // 다른 게시물의 댓글 상태에는 손대지 않고, 새로 렌더링되면 기본은 닫힘이다.
+  const card=triggerEl?.closest('.menu-card') || document.getElementById(`card-${id}`);
+  if(!card)return;
+  const section=card.querySelector('.comments-section');
+  if(!section)return;
+  const open=section.classList.toggle('open');
   const btn=card.querySelector('.toggle-comments');
-  if(btn)btn.setAttribute('aria-expanded',String(willOpen));
-  if(willOpen)setTimeout(()=>document.getElementById(`comment-text-${id}`)?.focus(),30);
+  if(btn)btn.setAttribute('aria-expanded',String(open));
 }
 function submitComment(id){
   const input=document.getElementById(`comment-text-${id}`),text=input?.value.trim();
   if(!text){showToast('댓글을 입력해줘.');return}
   ui.comments[id]=ui.comments[id]||[];
   ui.comments[id].push({id:'comment-'+Date.now(),text,createdAt:new Date().toISOString()});
-  if(!ui.openComments.includes(id))ui.openComments.push(id);
   saveState();
   const p=posts.find(x=>x.id===id);
   const card=document.getElementById(`card-${id}`);
@@ -108,36 +121,164 @@ function deletePost(id){if(String(id).startsWith('demo-'))return;if(!confirm('�
 function openModal(id){const m=$('#'+id);m.classList.add('show');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden'}
 function closeModal(id){const m=$('#'+id);m.classList.remove('show');m.setAttribute('aria-hidden','true');document.body.style.overflow=''}
 
-function startSort(){const items=[...posts].sort(()=>Math.random()-.5).slice(0,Math.min(12,posts.length));if(items.length<2){showToast('소트할 항목이 부족해요.');return}sortSession={source:items,ranked:[items[0]],index:1,insertLow:0,insertHigh:0,current:items[1],comparisons:0,estimated:estimateComparisons(items.length)};$('#rankIntro').hidden=true;$('#rankResult').hidden=true;$('#rankGame').hidden=false;prepareInsertion();renderCompare()}
-function estimateComparisons(n){return Math.max(1,Math.ceil(n*Math.log2(Math.max(2,n))))}
-function prepareInsertion(){const s=sortSession;if(s.index>=s.source.length){finishSort();return}s.current=s.source[s.index];s.insertLow=0;s.insertHigh=s.ranked.length}
-function renderCompare(){const s=sortSession;if(!s||s.index>=s.source.length)return;if(s.insertLow>=s.insertHigh){s.ranked.splice(s.insertLow,0,s.current);s.index++;prepareInsertion();if(s.index>=s.source.length)return}const mid=Math.floor((s.insertLow+s.insertHigh)/2);s.mid=mid;const left=s.current,right=s.ranked[mid];$('#rankProgress').textContent=`${Math.min(s.comparisons+1,s.estimated)} / ${s.estimated}`;$('#rankProgressBar').style.width=`${Math.min(100,(s.comparisons/s.estimated)*100)}%`;$('#compareGrid').innerHTML=[left,right].map((p,i)=>`<button class="compare-card" data-pick="${i===0?'current':'ranked'}"><div class="compare-work">${esc(p.title)}</div><div class="compare-author">${esc(p.author)}</div><div class="compare-quote">${esc(p.quote)}</div><div class="compare-pick">이 장면 선택 →</div></button>`).join('')}
-function pickSort(which){const s=sortSession;if(!s)return;s.comparisons++;if(which==='current')s.insertHigh=s.mid;else s.insertLow=s.mid+1;if(s.insertLow>=s.insertHigh){s.ranked.splice(s.insertLow,0,s.current);s.index++;if(s.index>=s.source.length){finishSort();return}prepareInsertion()}renderCompare()}
-function finishSort(){const s=sortSession;ui.lastSort=s.ranked.map(x=>x.id);saveState();$('#rankGame').hidden=true;$('#rankResult').hidden=false;$('#rankProgressBar').style.width='100%';renderRanking(s.ranked)}
-function renderRanking(ranked){$('#rankingList').innerHTML=ranked.map((p,i)=>`<div class="ranking-item"><div class="ranking-num">${i+1}</div><div class="ranking-info"><div class="ranking-title">${esc(p.title)}</div><div class="ranking-meta">${esc(p.author)}</div><div class="ranking-quote">${esc(p.quote)}</div></div></div>`).join('')}
-async function shareSort(){if(!ui.lastSort?.length)return;const ranked=ui.lastSort.map(id=>posts.find(p=>p.id===id)).filter(Boolean),text=['NAJJUBTYPE 명장면 소트',...ranked.slice(0,5).map((p,i)=>`${i+1}. ${p.title}`),'','#NAJJUBTYPE'].join('\n');try{if(navigator.share)await navigator.share({title:'NAJJUBTYPE 소트 결과',text,url:location.href});else{await navigator.clipboard.writeText(text);showToast('소트 결과를 복사했어요.')}}catch(e){if(e.name!=='AbortError')showToast('공유하지 못했어요.')}}
+function showTournamentSection(which){
+  const map={leaderboard:'#tournamentLeaderboard',game:'#tournamentGame',result:'#tournamentResult',history:'#tournamentHistory'};
+  Object.entries(map).forEach(([k,sel])=>{const el=$(sel);if(el)el.hidden=k!==which});
+}
+
+function rankCard(p,position){
+  const medal=position===0?'🥇':position===1?'🥈':position===2?'🥉':`${position+1}위`;
+  const stats=ui.sortStats?.[p.id]||{wins:0,losses:0,titles:0};
+  const cs=commentsFor(p);
+  return `<div class="menu-card tournament-ranking-card"><div class="menu-card-body">
+    <div class="post-header"><div class="post-header-left"><div class="post-avatar"><img src="${avatar}" alt="" width="32" height="32"></div><div class="post-header-info"><div class="post-author-badge">${esc(p.author||'익명')}</div><span class="post-meta-line">${medal} · 냐쭙 아카이브</span></div></div><div class="post-more-wrapper"><button class="post-more-btn" aria-label="더보기" type="button">${icons.more}</button></div></div>
+    <div class="post-content"><h2 class="post-title">${esc(p.title)}</h2><p class="post-body">${esc(p.quote)}</p></div>
+    <div class="ranking-stats"><span>승 ${stats.wins||0}</span><span>패 ${stats.losses||0}</span>${stats.titles?`<span class="win-rate">우승 ${stats.titles}</span>`:''}</div>
+    <div class="post-actions"><div class="post-actions-left"><button class="vote-btn up ${ui.liked.includes(p.id)?'active':''}" data-like="${esc(p.id)}">${icons.heart}<span>${likeCount(p)}</span></button><button class="toggle-comments" data-comment="${esc(p.id)}">${icons.comment}${cs.length}</button></div><div class="post-actions-right"><button class="post-icon-btn ${ui.saved.includes(p.id)?'saved':''}" data-save="${esc(p.id)}">${icons.bookmark}</button><button class="post-icon-btn" data-share="${esc(p.id)}">${icons.share}</button></div></div>
+    ${p.reason?`<div class="post-comment-bubble" data-comment="${esc(p.id)}"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(p.reason)}</p></div>`:''}
+    <div class="comments-section" id="rank-comments-${esc(p.id)}"><div class="comment-list">${renderCommentsHTML(cs)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea id="comment-text-${esc(p.id)}" placeholder="공감할래말래" rows="1"></textarea><div class="comment-form-row"><button class="btn" data-submit-comment="${esc(p.id)}">등록</button></div></div></div>
+  </div></div>`;
+}
+
+function loadTournamentLeaderboard(){
+  const list=$('#rankingList');
+  if(!list)return;
+  const ranked=[...posts].sort((a,b)=>{
+    const as=ui.sortStats?.[a.id]||{},bs=ui.sortStats?.[b.id]||{};
+    return (bs.titles||0)-(as.titles||0)||(bs.wins||0)-(as.wins||0)||likeCount(b)-likeCount(a)||new Date(b.createdAt)-new Date(a.createdAt);
+  });
+  if(!ranked.length){list.innerHTML='<div class="leaderboard-empty"><div class="icon">🏆</div><p>아직 랭킹 기록이 없습니다.<br>참여해서 원하는 작품을 붐업하세요!</p></div>';return}
+  list.innerHTML=ranked.map(rankCard).join('');
+}
+
+function openRoundSelect(){
+  showTournamentSection('game');
+  $('#gameTitle').textContent='라운드 선택';
+  $('#matchArea').innerHTML='';
+  $('#tournamentBackBtn').hidden=true;
+  renderRoundSelect();
+}
+
+function renderRoundSelect(){
+  const available=posts.length;
+  const select=$('#roundSelect');
+  if(available<4){select.innerHTML='<p class="round-message">추천이 부족합니다 (최소 4개)</p>';return}
+  const fixed=[4,8,16,32].filter(n=>n<=available);
+  if(!fixed.includes(available))fixed.push(available);
+  select.innerHTML=fixed.map(n=>`<button data-round-size="${n}">${n}강</button>`).join('');
+}
+
+function startTournament(size){
+  const shuffled=[...posts].sort(()=>Math.random()-.5).slice(0,size);
+  const nextPow2=Math.pow(2,Math.ceil(Math.log2(shuffled.length)));
+  const byeCount=nextPow2-shuffled.length;
+  const byes=shuffled.slice(0,byeCount);
+  const firstRound=shuffled.slice(byeCount);
+  sortSession={roundSize:size,currentRound:firstRound,matchIndex:0,winners:[...byes],eliminated:[],history:[],matches:[]};
+  $('#roundSelect').innerHTML='';
+  $('#tournamentBackBtn').hidden=false;
+  renderMatch();
+}
+
+function getRoundLabel(count){if(count===2)return'결승';if(count===4)return'준결승';return`${count}강`}
+
+function matchCardHtml(p,side){
+  const cs=commentsFor(p);
+  return `<div class="match-card" id="match-${side}" data-pick-side="${side}"><div class="menu-card-body">
+    <div class="post-header"><div class="post-header-left"><div class="post-avatar"><img src="${avatar}" alt="" width="32" height="32"></div><div class="post-header-info"><div class="post-author-badge">${esc(p.author||'익명')}</div><span class="post-meta-line">${timeAgo(p.createdAt)} · 냐쭙 아카이브</span></div></div></div>
+    <div class="post-content"><h2 class="post-title">${esc(p.title)}</h2><p class="post-body">${esc(p.quote)}</p></div>
+    <div class="post-actions"><div class="post-actions-left"><span class="vote-btn up">${icons.heart}<span>${likeCount(p)}</span></span><button class="toggle-comments" data-match-comment="${esc(p.id)}" data-side="${side}">${icons.comment}${cs.length}</button></div><div class="post-actions-right"><span class="post-icon-btn">${icons.bookmark}</span><span class="post-icon-btn">${icons.share}</span></div></div>
+    ${p.reason?`<div class="post-comment-bubble" data-match-comment="${esc(p.id)}" data-side="${side}"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(p.reason)}</p></div>`:''}
+    <div class="comments-section" id="match-comments-${side}"><div class="comment-list">${renderCommentsHTML(cs)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea id="match-comment-text-${side}" placeholder="공감할래말래" rows="1"></textarea><div class="comment-form-row"><button class="btn" data-match-submit="${esc(p.id)}" data-side="${side}">등록</button></div></div></div>
+  </div></div>`;
+}
+
+function renderMatch(){
+  const s=sortSession;if(!s)return;
+  const totalMatches=s.currentRound.length/2;
+  if(s.matchIndex>=totalMatches){
+    if(s.winners.length===1){finishTournament(s.winners[0]);return}
+    s.currentRound=[...s.winners];s.winners=[];s.matchIndex=0;renderMatch();return;
+  }
+  const a=s.currentRound[s.matchIndex*2],b=s.currentRound[s.matchIndex*2+1];
+  const roundTotal=s.currentRound.length+s.winners.length;
+  $('#gameTitle').textContent=`${getRoundLabel(roundTotal)} ${s.matchIndex+1}/${totalMatches}`;
+  $('#matchArea').innerHTML=`<div class="match-container">${matchCardHtml(a,'a')}<div class="match-vs">VS</div>${matchCardHtml(b,'b')}</div>`;
+  $('#match-a').addEventListener('click',e=>{if(e.target.closest('button,textarea,.post-comment-bubble'))return;pickWinner(a,b)});
+  $('#match-b').addEventListener('click',e=>{if(e.target.closest('button,textarea,.post-comment-bubble'))return;pickWinner(b,a)});
+}
+
+function pickWinner(winner,loser){
+  const s=sortSession;if(!s)return;
+  s.history.push({currentRound:[...s.currentRound],matchIndex:s.matchIndex,winners:[...s.winners],eliminated:[...s.eliminated],matches:[...s.matches]});
+  s.winners.push(winner);s.eliminated.push(loser);s.matches.push({winnerId:winner.id,loserId:loser.id});s.matchIndex++;renderMatch();
+}
+
+function finishTournament(winner){
+  const s=sortSession;
+  const ranking=[winner,...[...s.eliminated].reverse()];
+  ui.lastSort=ranking.map(x=>x.id);
+  ui.sortHistory=ui.sortHistory||[];
+  ui.sortHistory.unshift({date:new Date().toISOString(),roundSize:s.roundSize,ranking:ranking.map(x=>x.id)});
+  if(ui.sortHistory.length>20)ui.sortHistory.length=20;
+  ui.sortStats=ui.sortStats||{};
+  s.matches.forEach(m=>{
+    ui.sortStats[m.winnerId]=Object.assign({wins:0,losses:0,titles:0},ui.sortStats[m.winnerId]||{});ui.sortStats[m.winnerId].wins++;
+    ui.sortStats[m.loserId]=Object.assign({wins:0,losses:0,titles:0},ui.sortStats[m.loserId]||{});ui.sortStats[m.loserId].losses++;
+  });
+  ui.sortStats[winner.id]=Object.assign({wins:0,losses:0,titles:0},ui.sortStats[winner.id]||{});ui.sortStats[winner.id].titles++;
+  saveState();
+  showTournamentSection('result');
+  $('#tournamentResult').innerHTML=`<div class="tournament-result"><div class="winner-label">🏆 우승</div>${rankCard(winner,0)}<div class="result-ranking">${ranking.slice(1).map((p,i)=>`<div class="result-ranking-item"><div class="result-rank">${i===0?'🥈':i===1?'🥉':i+2}</div><div class="result-ranking-info"><div class="result-ranking-title">${esc(p.title)} <span class="result-ranking-author">· ${esc(p.author)}</span></div><div class="post-body result-quote">${esc(p.quote)}</div></div></div>`).join('')}</div><div class="result-actions"><button class="tournament-btn tournament-btn-ghost" id="resultRankingBtn">랭킹 보기</button><button class="tournament-btn" id="resultAgainBtn">다시하기</button></div></div>`;
+  $('#resultRankingBtn').addEventListener('click',()=>{showTournamentSection('leaderboard');loadTournamentLeaderboard()});
+  $('#resultAgainBtn').addEventListener('click',openRoundSelect);
+}
+
+function renderHistory(){
+  const list=$('#historyList'),history=ui.sortHistory||[];
+  if(!history.length){list.innerHTML='<div class="leaderboard-empty"><div class="icon">📋</div><p>아직 기록이 없습니다.<br>소트에 참여해보세요!</p></div>';return}
+  const counts={};history.forEach(h=>{const id=h.ranking[0];counts[id]=(counts[id]||0)+1});
+  const top=Math.max(...Object.values(counts));const topIds=Object.keys(counts).filter(id=>counts[id]===top);
+  list.innerHTML=`<div class="top-winner-summary">내 최다 우승: ${topIds.map(id=>{const p=posts.find(x=>x.id===id);return p?`<strong>${esc(p.title)}</strong>`:''}).filter(Boolean).join(', ')} (${top}회)</div><div class="history-section">${history.map((h,idx)=>{const p=posts.find(x=>x.id===h.ranking[0]);const d=new Date(h.date);return `<button class="history-item" data-history-index="${idx}"><span class="history-date">${d.getMonth()+1}/${d.getDate()}</span><span class="history-round">${h.roundSize}강</span><span class="history-winner">🏆 ${p?esc(p.title):'삭제된 항목'}</span><span class="history-arrow">▼</span></button><div class="history-detail" id="history-detail-${idx}" hidden>${h.ranking.map((id,i)=>{const x=posts.find(p=>p.id===id);return x?`<div class="result-ranking-item"><div class="result-rank">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div><div class="result-ranking-info"><div class="result-ranking-title">${esc(x.title)} <span class="result-ranking-author">· ${esc(x.author)}</span></div><div class="post-body result-quote">${esc(x.quote)}</div></div></div>`:''}).join('')}</div>`}).join('')}</div>`;
+}
+
+function leaveGameForRanking(){
+  if(sortSession&&sortSession.matches?.length){if(!confirm('진행 중인 소트가 사라집니다. 랭킹 페이지로 이동하시겠습니까?'))return;sortSession=null}
+  showTournamentSection('leaderboard');loadTournamentLeaderboard();
+}
+
+function undoTournamentPick(){
+  const s=sortSession;if(!s||!s.history.length){showTournamentSection('leaderboard');loadTournamentLeaderboard();return}
+  const prev=s.history.pop();s.currentRound=prev.currentRound;s.matchIndex=prev.matchIndex;s.winners=prev.winners;s.eliminated=prev.eliminated;s.matches=prev.matches;renderMatch();
+}
 
 $('#submitPostBtn').addEventListener('click',submitPost);
 $('#sortTop').addEventListener('click',()=>setView('top'));
 $('#sortNew').addEventListener('click',()=>setView('new'));
 $('#sortRank').addEventListener('click',()=>setView('rank'));
 $('#saveEditBtn').addEventListener('click',saveEdit);
-$('#startSortBtn').addEventListener('click',startSort);
-$('#restartSortBtn').addEventListener('click',startSort);
-$('#shareSortBtn').addEventListener('click',shareSort);
+$('#tournamentPlayBtn').addEventListener('click',openRoundSelect);
+$('#tournamentHistoryBtn').addEventListener('click',()=>{showTournamentSection('history');renderHistory()});
+$('#gameRankingBtn').addEventListener('click',leaveGameForRanking);
+$('#tournamentBackBtn').addEventListener('click',undoTournamentPick);
+$('#historyRankingBtn').addEventListener('click',()=>{showTournamentSection('leaderboard');loadTournamentLeaderboard()});
+$('#historyPlayBtn').addEventListener('click',openRoundSelect);
 
 document.addEventListener('click',e=>{
   const menuBtn=e.target.closest('[data-menu]');if(menuBtn){e.stopPropagation();const menu=document.getElementById(`menu-${menuBtn.dataset.menu}`);$$('.post-dropdown.show').filter(x=>x!==menu).forEach(x=>x.classList.remove('show'));menu?.classList.toggle('show');return}
   const like=e.target.closest('[data-like]');if(like){toggleLike(like.dataset.like);return}
-  const comment=e.target.closest('[data-comment]');if(comment){toggleComments(comment.dataset.comment);return}
+  const comment=e.target.closest('[data-comment]');if(comment){toggleComments(comment.dataset.comment, comment);return}
   const submit=e.target.closest('[data-submit-comment]');if(submit){submitComment(submit.dataset.submitComment);return}
   const save=e.target.closest('[data-save]');if(save){toggleSave(save.dataset.save);return}
   const share=e.target.closest('[data-share]');if(share){sharePost(share.dataset.share);return}
   const edit=e.target.closest('[data-edit]');if(edit){openEdit(edit.dataset.edit);return}
   const del=e.target.closest('[data-delete]');if(del){deletePost(del.dataset.delete);return}
   const copy=e.target.closest('[data-copy]');if(copy){copyPost(copy.dataset.copy);return}
+  const round=e.target.closest('[data-round-size]');if(round){startTournament(Number(round.dataset.roundSize));return}
+  const matchComment=e.target.closest('[data-match-comment]');if(matchComment){e.stopPropagation();const side=matchComment.dataset.side;document.getElementById(`match-comments-${side}`)?.classList.toggle('open');return}
+  const matchSubmit=e.target.closest('[data-match-submit]');if(matchSubmit){e.stopPropagation();const id=matchSubmit.dataset.matchSubmit,side=matchSubmit.dataset.side,input=document.getElementById(`match-comment-text-${side}`),text=input?.value.trim();if(!text){showToast('댓글을 입력해줘.');return}ui.comments[id]=ui.comments[id]||[];ui.comments[id].push({id:'comment-'+Date.now(),text,createdAt:new Date().toISOString()});saveState();renderMatch();setTimeout(()=>document.getElementById(`match-comments-${side}`)?.classList.add('open'),0);return}
+  const hist=e.target.closest('[data-history-index]');if(hist){const detail=document.getElementById(`history-detail-${hist.dataset.historyIndex}`);if(detail)detail.hidden=!detail.hidden;return}
   const close=e.target.closest('[data-close]');if(close){closeModal(close.dataset.close);return}
-  const pick=e.target.closest('[data-pick]');if(pick){pickSort(pick.dataset.pick);return}
   if(e.target.classList.contains('modal-overlay'))closeModal(e.target.id);
   if(!e.target.closest('.post-more-wrapper'))$$('.post-dropdown.show').forEach(x=>x.classList.remove('show'));
 });

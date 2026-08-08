@@ -687,3 +687,28 @@
 @media(max-width:743px){
   .compare-card{padding:18px 16px}
 }
+
+/* Tournament flow — mirrors the supplied recom-five sort UI */
+.tournament-actions{display:flex;gap:8px;align-items:center}
+.tournament-btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.tournament-btn-ghost:hover{background:#F9F9FA}
+.round-message{color:var(--muted);font-size:14px;padding:10px 0}
+.tournament-ranking-card .menu-card-body{padding-top:20px}
+.tournament-ranking-card .ranking-stats{margin-top:-2px;margin-bottom:0}
+.winner-label{font-size:15px;font-weight:700;text-align:center;padding:18px 0 0}
+.result-ranking-author{font-weight:400;color:var(--muted);font-size:12px}
+.result-quote{font-size:14px;margin-top:2px;white-space:pre-wrap}
+.top-winner-summary{padding:12px 0 0;font-size:14px;color:var(--muted)}
+.top-winner-summary strong{color:var(--text)}
+.history-item{width:100%;border:0;background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.history-arrow{color:var(--muted);font-size:12px}
+.history-detail{padding:8px 0 16px;border-bottom:1px solid var(--border)}
+
+@media(max-width:743px){
+  .tournament-header{padding-top:20px}
+  .tournament-header h2{font-size:15px}
+  .tournament-btn{padding:7px 12px;font-size:13px}
+  .round-select{gap:7px}
+  .round-select button{padding:11px 6px;font-size:14px}
+  .match-card{padding:0 16px}
+}
