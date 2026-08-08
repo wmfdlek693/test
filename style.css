@@ -712,3 +712,33 @@
   .round-select button{padding:11px 6px;font-size:14px}
   .match-card{padding:0 16px}
 }
+
+/* 2026-08-09: recom-five mobile reference pass */
+@media (max-width: 743px) {
+  .main { max-width: 640px; padding: 0 16px; }
+  .sort-bar { height: 46px; gap: 24px; }
+  .sort-bar button { font-size: 16px; padding: 0 4px; }
+  .menu-card-body { padding: 22px 0 18px; gap: 10px; }
+  .post-header-left { gap: 8px; }
+  .post-avatar { width: 34px; height: 34px; }
+  .post-author-badge { font-size: 14px; line-height: 1.35; }
+  .post-meta-line { font-size: 13px; line-height: 1.35; }
+  .post-title { font-size: 16px; line-height: 1.4; }
+  .post-body { font-size: 15px; line-height: 1.72; letter-spacing: -0.02em; white-space: pre-wrap; }
+  .post-actions { margin-top: -2px; min-height: 34px; }
+  .vote-btn,.toggle-comments { font-size: 14px; gap: 4px; }
+  .vote-btn svg,.toggle-comments svg,.post-icon-btn svg { width: 21px; height: 21px; }
+  .post-comment-bubble { margin-top: 0; padding: 12px; border-radius: 8px; gap: 8px; background:#f8f8f9; }
+  .post-comment-avatar { width: 25px; height: 25px; }
+  .post-comment-text { font-size: 14px; line-height: 1.5; min-height:25px; }
+  .comments-section { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 10px; }
+  .comment-item { padding: 12px 0; gap: 10px; }
+  .comment-avatar { width: 34px; height: 34px; }
+  .comment-header { gap: 7px; margin-bottom: 5px; }
+  .comment-nickname { font-size: 14px; }
+  .comment-time { font-size: 13px; }
+  .comment-text { font-size: 15px; line-height: 1.55; }
+  .add-comment-form { margin-top: 12px; padding: 12px; border-radius: 8px; }
+  .add-comment-form .comment-input-header img { width: 28px; height: 28px; }
+  .add-comment-form textarea { font-size: 15px; line-height: 1.55; }
+}

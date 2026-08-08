@@ -3,7 +3,7 @@ const STATE_KEY='najjubtype-state-v4';
 const avatar='./assets/avatar_blank.png';
 
 const demoPosts=[
-  {id:'demo-1',title:'라인을 준수하세요',author:'옥잠',link:'#',quote:`시험 끝났어 유나야.\n\n사실 널 시험하기보다는 날 시험한 거였어.\n\n이제 알 것 같아. 너를 믿고 싶어. 네 마음을 믿고 싶어.\n\n좋아해. 선 넘어도 돼. 그래도 돼.`,reason:'',createdAt:'2026-08-09T03:30:00+09:00',baseLikes:0,comments:[]},
+  {id:'demo-1',title:'라인을 준수하세요',author:'옥잠',link:'#',quote:`시험 끝났어 유나야.\n\n사실 널 시험하기보다는 날 시험한 거였어.\n\n이제 알 것 같아. 너를 믿고 싶어. 네 마음을 믿고 싶어.\n\n좋아해. 선 넘어도 돼. 그래도 돼.`,reason:'이혼부부 과거 존맛',createdAt:'2026-08-09T03:30:00+09:00',baseLikes:8,comments:[{id:'demo-comment-1',text:'연반중에최고~~~~내생에모든것중에최고',createdAt:'2026-06-24T05:31:00+09:00'}]},
   {id:'demo-2',title:'라인을 준수하세요',author:'옥잠',link:'#',quote:`너 이제 진짜 큰일 난 거야.\n\n나 같은 애들은 한 번 손에 쥐면 절대 안 놔주거든.\n\n노유나가 비죽 웃었다. 멱살이 틀어 잡힌 채 듣는 경고가 뭐가 그리 좋다고 웃었다. 살벌하지만 달콤한 경고가 사랑스러웠다. 참을 수 없이 애타는 속에 고개를 비스듬히 틀며 다가갔다. 단숨에 좁혀진 거리에 놀라 숨을 참는 얼굴 위로 속삭였다. 큰일? 김주은 네가 잘 몰라서 그러는데....\n\n- 그거야말로 내가 바라는 바야.`,reason:'',createdAt:'2026-08-09T03:20:00+09:00',baseLikes:0,comments:[]},
   {id:'demo-3',title:'야 나 좀 아포',author:'옥잠',link:'#',quote:`- 상식적으로, 도의적으로, 인간적으로.\n- ....\n- ....한 번 더 하자.\n- 나도 그 말 하려고 했어...`,reason:'',createdAt:'2026-08-09T03:10:00+09:00',baseLikes:0,comments:[]},
   {id:'demo-4',title:'꼬우면 한판 떠',author:'옥잠',link:'#',quote:`- 야아 너 다 알면서 왜 그러냐 진짜...\n- 빨리 말해. 머리 굴리지 말고.\n- 아... 진짜 주은아 쫌....\n- 예~ 할 말 있으세요?\n- ...귀 대봐바.\n\n진짜니너무귀여우니까그만해... 니 너무 예뻐서 나 죽겠다고 진짜... 존나 사랑해 개사랑해 여기 빨리 파토내고 너 들쳐업고 집으로 튀고 싶어... 이상입니다.`,reason:'',createdAt:'2026-08-09T03:00:00+09:00',baseLikes:0,comments:[]}
@@ -54,7 +54,7 @@ function renderCard(p){
     </div>
     <div class="post-content"><h2 class="post-title">${link==='#'?esc(p.title):`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">${esc(p.title)}</a>`}</h2><p class="post-body">${esc(p.quote)}</p></div>
     <div class="post-actions"><div class="post-actions-left"><button class="vote-btn up ${liked?'active':''}" data-like="${esc(p.id)}">${icons.heart}<span>${likeCount(p)}</span></button><button class="toggle-comments" data-comment="${esc(p.id)}" aria-expanded="${open?'true':'false'}">${icons.comment}${cs.length}</button></div><div class="post-actions-right"><button class="post-icon-btn ${saved?'saved':''}" data-save="${esc(p.id)}" aria-label="저장">${icons.bookmark}</button><button class="post-icon-btn" data-share="${esc(p.id)}" aria-label="공유">${icons.share}</button></div></div>
-    ${p.reason?`<div class="post-comment-bubble" data-comment="${esc(p.id)}"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(p.reason)}</p></div>`:''}
+    ${p.reason?`<div class="post-comment-bubble"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(p.reason)}</p></div>`:''}
     <div class="comments-section ${open?'open':''}" id="comments-${esc(p.id)}"><div class="comment-list">${renderCommentsHTML(cs)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea id="comment-text-${esc(p.id)}" placeholder="공감할래말래" rows="1"></textarea><div class="comment-form-row"><button class="btn" data-submit-comment="${esc(p.id)}">등록</button></div></div></div>
   </div></div>`;
 }
@@ -135,7 +135,7 @@ function rankCard(p,position){
     <div class="post-content"><h2 class="post-title">${esc(p.title)}</h2><p class="post-body">${esc(p.quote)}</p></div>
     <div class="ranking-stats"><span>승 ${stats.wins||0}</span><span>패 ${stats.losses||0}</span>${stats.titles?`<span class="win-rate">우승 ${stats.titles}</span>`:''}</div>
     <div class="post-actions"><div class="post-actions-left"><button class="vote-btn up ${ui.liked.includes(p.id)?'active':''}" data-like="${esc(p.id)}">${icons.heart}<span>${likeCount(p)}</span></button><button class="toggle-comments" data-comment="${esc(p.id)}">${icons.comment}${cs.length}</button></div><div class="post-actions-right"><button class="post-icon-btn ${ui.saved.includes(p.id)?'saved':''}" data-save="${esc(p.id)}">${icons.bookmark}</button><button class="post-icon-btn" data-share="${esc(p.id)}">${icons.share}</button></div></div>
-    ${p.reason?`<div class="post-comment-bubble" data-comment="${esc(p.id)}"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(p.reason)}</p></div>`:''}
+    ${p.reason?`<div class="post-comment-bubble"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(p.reason)}</p></div>`:''}
     <div class="comments-section" id="rank-comments-${esc(p.id)}"><div class="comment-list">${renderCommentsHTML(cs)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea id="comment-text-${esc(p.id)}" placeholder="공감할래말래" rows="1"></textarea><div class="comment-form-row"><button class="btn" data-submit-comment="${esc(p.id)}">등록</button></div></div></div>
   </div></div>`;
 }
@@ -188,7 +188,7 @@ function matchCardHtml(p,side){
     <div class="post-header"><div class="post-header-left"><div class="post-avatar"><img src="${avatar}" alt="" width="32" height="32"></div><div class="post-header-info"><div class="post-author-badge">${esc(p.author||'익명')}</div><span class="post-meta-line">${timeAgo(p.createdAt)} · 냐쭙 아카이브</span></div></div></div>
     <div class="post-content"><h2 class="post-title">${esc(p.title)}</h2><p class="post-body">${esc(p.quote)}</p></div>
     <div class="post-actions"><div class="post-actions-left"><span class="vote-btn up">${icons.heart}<span>${likeCount(p)}</span></span><button class="toggle-comments" data-match-comment="${esc(p.id)}" data-side="${side}">${icons.comment}${cs.length}</button></div><div class="post-actions-right"><span class="post-icon-btn">${icons.bookmark}</span><span class="post-icon-btn">${icons.share}</span></div></div>
-    ${p.reason?`<div class="post-comment-bubble" data-match-comment="${esc(p.id)}" data-side="${side}"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(p.reason)}</p></div>`:''}
+    ${p.reason?`<div class="post-comment-bubble"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(p.reason)}</p></div>`:''}
     <div class="comments-section" id="match-comments-${side}"><div class="comment-list">${renderCommentsHTML(cs)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea id="match-comment-text-${side}" placeholder="공감할래말래" rows="1"></textarea><div class="comment-form-row"><button class="btn" data-match-submit="${esc(p.id)}" data-side="${side}">등록</button></div></div></div>
   </div></div>`;
 }
