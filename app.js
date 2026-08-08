@@ -53,7 +53,7 @@ function renderCard(p){
       <div class="post-more-wrapper"><button class="post-more-btn" aria-label="더보기" type="button" data-menu="${esc(p.id)}">${icons.more}</button><div class="post-dropdown" id="menu-${esc(p.id)}">${editable?`<button data-edit="${esc(p.id)}">수정</button><button data-delete="${esc(p.id)}">삭제</button>`:`<button data-copy="${esc(p.id)}">링크 복사</button>`}</div></div>
     </div>
     <div class="post-content"><h2 class="post-title">${link==='#'?esc(p.title):`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">${esc(p.title)}</a>`}</h2><p class="post-body">${esc(p.quote)}</p></div>
-    <div class="post-actions"><div class="post-actions-left"><button class="vote-btn up ${liked?'active':''}" data-like="${esc(p.id)}">${icons.heart}<span>${likeCount(p)}</span></button><button class="toggle-comments" data-comment="${esc(p.id)}">${icons.comment}${cs.length}</button></div><div class="post-actions-right"><button class="post-icon-btn ${saved?'saved':''}" data-save="${esc(p.id)}" aria-label="저장">${icons.bookmark}</button><button class="post-icon-btn" data-share="${esc(p.id)}" aria-label="공유">${icons.share}</button></div></div>
+    <div class="post-actions"><div class="post-actions-left"><button class="vote-btn up ${liked?'active':''}" data-like="${esc(p.id)}">${icons.heart}<span>${likeCount(p)}</span></button><button class="toggle-comments" data-comment="${esc(p.id)}" aria-expanded="${open?'true':'false'}">${icons.comment}${cs.length}</button></div><div class="post-actions-right"><button class="post-icon-btn ${saved?'saved':''}" data-save="${esc(p.id)}" aria-label="저장">${icons.bookmark}</button><button class="post-icon-btn" data-share="${esc(p.id)}" aria-label="공유">${icons.share}</button></div></div>
     ${p.reason?`<div class="post-comment-bubble" data-comment="${esc(p.id)}"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(p.reason)}</p></div>`:''}
     <div class="comments-section ${open?'open':''}" id="comments-${esc(p.id)}"><div class="comment-list">${renderCommentsHTML(cs)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea id="comment-text-${esc(p.id)}" placeholder="공감할래말래" rows="1"></textarea><div class="comment-form-row"><button class="btn" data-submit-comment="${esc(p.id)}">등록</button></div></div></div>
   </div></div>`;
@@ -66,8 +66,39 @@ function setView(view){currentView=view;$$('.sort-bar button').forEach(b=>b.clas
 function submitPost(){const quote=$('#quoteInput').value.trim(),title=$('#titleInput').value.trim(),author=$('#authorInput').value.trim(),link=$('#linkInput').value.trim(),reason=$('#reasonInput').value.trim();if(!quote||!title||!author){showToast('명대사, 제목, 작가는 입력해줘.');return}posts.push({id:'user-'+Date.now(),title,author,link,quote,reason,createdAt:new Date().toISOString(),baseLikes:0,comments:[]});saveCustomPosts();['#quoteInput','#titleInput','#authorInput','#linkInput','#reasonInput'].forEach(id=>$(id).value='');setView('new');showToast('명대사가 등록됐어요.')}
 function toggleLike(id){const p=posts.find(x=>x.id===id);if(!p)return;const liked=ui.liked.includes(id);ui.liked=liked?ui.liked.filter(x=>x!==id):[...ui.liked,id];ui.likeDelta[id]=(ui.likeDelta[id]||0)+(liked?-1:1);saveState();renderFeed()}
 function toggleSave(id){const saved=ui.saved.includes(id);ui.saved=saved?ui.saved.filter(x=>x!==id):[...ui.saved,id];saveState();renderFeed();showToast(saved?'보관함에서 뺐어요.':'보관함에 저장했어요.')}
-function toggleComments(id){ui.openComments=ui.openComments.includes(id)?ui.openComments.filter(x=>x!==id):[...ui.openComments,id];saveState();renderFeed();if(ui.openComments.includes(id))setTimeout(()=>document.getElementById(`comment-text-${id}`)?.focus(),30)}
-function submitComment(id){const input=document.getElementById(`comment-text-${id}`),text=input?.value.trim();if(!text){showToast('댓글을 입력해줘.');return}ui.comments[id]=ui.comments[id]||[];ui.comments[id].push({id:'comment-'+Date.now(),text,createdAt:new Date().toISOString()});if(!ui.openComments.includes(id))ui.openComments.push(id);saveState();renderFeed();showToast('댓글을 등록했어요.')}
+function toggleComments(id){
+  const card=document.getElementById(`card-${id}`);
+  const section=card?.querySelector('.comments-section');
+  if(!section)return;
+  const willOpen=!section.classList.contains('open');
+  section.classList.toggle('open',willOpen);
+  ui.openComments=willOpen?[...new Set([...ui.openComments,id])]:ui.openComments.filter(x=>x!==id);
+  saveState();
+  const btn=card.querySelector('.toggle-comments');
+  if(btn)btn.setAttribute('aria-expanded',String(willOpen));
+  if(willOpen)setTimeout(()=>document.getElementById(`comment-text-${id}`)?.focus(),30);
+}
+function submitComment(id){
+  const input=document.getElementById(`comment-text-${id}`),text=input?.value.trim();
+  if(!text){showToast('댓글을 입력해줘.');return}
+  ui.comments[id]=ui.comments[id]||[];
+  ui.comments[id].push({id:'comment-'+Date.now(),text,createdAt:new Date().toISOString()});
+  if(!ui.openComments.includes(id))ui.openComments.push(id);
+  saveState();
+  const p=posts.find(x=>x.id===id);
+  const card=document.getElementById(`card-${id}`);
+  if(p&&card){
+    const cs=commentsFor(p);
+    const list=card.querySelector('.comment-list');
+    if(list)list.innerHTML=renderCommentsHTML(cs);
+    const countBtn=card.querySelector('.toggle-comments');
+    if(countBtn)countBtn.innerHTML=`${icons.comment}${cs.length}`;
+    card.querySelector('.comments-section')?.classList.add('open');
+    input.value='';
+    input.focus();
+  }
+  showToast('댓글을 등록했어요.');
+}
 async function sharePost(id){const p=posts.find(x=>x.id===id);if(!p)return;const text=`${p.title} — ${p.author}\n\n${p.quote}\n\n#NAJJUBTYPE`,url=safeLink(p.link)==='#'?location.href:safeLink(p.link);try{if(navigator.share)await navigator.share({title:p.title,text,url});else{await navigator.clipboard.writeText(`${text}\n${url}`);showToast('공유 문구를 복사했어요.')}}catch(e){if(e.name!=='AbortError')showToast('공유하지 못했어요.')}}
 function copyPost(id){const p=posts.find(x=>x.id===id),url=safeLink(p?.link);navigator.clipboard?.writeText(url==='#'?location.href:url);showToast('링크를 복사했어요.')}
 
