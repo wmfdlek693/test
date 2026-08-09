@@ -27,7 +27,7 @@ function esc(s=''){return String(s).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt
 function safeLink(url){if(!url||url==='#')return '#';try{const u=new URL(url);return /^https?:$/.test(u.protocol)?u.href:'#'}catch{return '#'}}
 function timeAgo(date){const diff=Math.max(0,Date.now()-new Date(date).getTime()),m=Math.floor(diff/60000);if(m<1)return'방금 전';if(m<60)return`${m}분 전`;const h=Math.floor(m/60);if(h<24)return`${h}시간 전`;const d=Math.floor(h/24);return`${d}일 전`}
 function commentsFor(p){return [...(p.comments||[]),...(ui.comments[p.id]||[])]}
-function likeCount(p){return (p.baseLikes||0)+(ui.likeDelta[p.id]||0)}
+function likeCount(p){return (p.baseLikes||0)+(ui.liked.includes(p.id)?1:0)}
 
 const heartPath='m10.82 20.116-.097-.09-6.844-6.355A5.882 5.882 0 0 1 2 9.359v-.13C2 6.48 3.953 4.12 6.656 3.606A5.71 5.71 0 0 1 12 5.417a5.562 5.562 0 0 1 .977-.871 5.73 5.73 0 0 1 4.367-.945A5.73 5.73 0 0 1 22 9.23v.129c0 1.636-.68 3.199-1.879 4.312l-6.844 6.355-.097.09c-.32.297-.742.465-1.18.465a1.72 1.72 0 0 1-1.18-.465Zm.52-12.625a.205.205 0 0 1-.04-.043l-.695-.78-.003-.005A3.85 3.85 0 0 0 3.875 9.23v.13c0 1.113.465 2.18 1.281 2.937L12 18.651l6.844-6.355a4.012 4.012 0 0 0 1.281-2.937v-.13a3.851 3.851 0 0 0-6.723-2.566l-.004.004-.003.004-.696.781c-.011.016-.027.028-.039.043a.935.935 0 0 1-1.32 0v-.004Z';
 const icons={
@@ -63,16 +63,19 @@ function renderCommentsHTML(cs){return cs.map(c=>`<div class="comment-item"><img
 
 function setView(view){currentView=view;$$('.sort-bar button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));const rank=view==='rank';$('#feedView').hidden=rank;$('#rankView').hidden=!rank;if(rank){showTournamentSection('leaderboard');loadTournamentLeaderboard()}else renderFeed()}
 
-function submitPost(){const quote=$('#quoteInput').value.trim(),title=$('#titleInput').value.trim(),author=$('#authorInput').value.trim(),link=$('#linkInput').value.trim(),reason=$('#reasonInput').value.trim();if(!quote||!title||!author){showToast('명대사, 제목, 작가는 입력해줘.');return}posts.push({id:'user-'+Date.now(),title,author,link,quote,reason,createdAt:new Date().toISOString(),baseLikes:0,comments:[]});saveCustomPosts();['#quoteInput','#titleInput','#authorInput','#linkInput','#reasonInput'].forEach(id=>$(id).value='');setView('new');showToast('명대사가 등록됐어요.')}
+function submitPost(){const quote=$('#quoteInput').value.trim(),title=$('#titleInput').value.trim(),author=$('#authorInput').value.trim(),link=$('#linkInput').value.trim(),reason=$('#reasonInput').value.trim();if(!quote||!title||!author||!reason){showToast('명대사, 제목, 작가, 추천 이유를 입력해줘.');return}posts.push({id:'user-'+Date.now(),title,author,link,quote,reason,createdAt:new Date().toISOString(),baseLikes:0,comments:[]});saveCustomPosts();['#quoteInput','#titleInput','#authorInput','#linkInput','#reasonInput'].forEach(id=>$(id).value='');setView('new');showToast('명대사가 등록됐어요.')}
 function toggleLike(id){
   const p=posts.find(x=>x.id===id);if(!p)return;
   const liked=ui.liked.includes(id);
   ui.liked=liked?ui.liked.filter(x=>x!==id):[...ui.liked,id];
-  ui.likeDelta[id]=(ui.likeDelta[id]||0)+(liked?-1:1);
   saveState();
-  const card=document.getElementById(`card-${id}`);
-  const btn=card?.querySelector('[data-like]');
-  if(btn){btn.classList.toggle('active',!liked);const count=btn.querySelector('span');if(count)count.textContent=likeCount(p);}
+
+  // 같은 게시물이 피드/랭킹/소트에 여러 번 보여도 하트 수와 활성 상태를 모두 즉시 동기화
+  document.querySelectorAll(`[data-like="${CSS.escape(id)}"]`).forEach(btn=>{
+    btn.classList.toggle('active',!liked);
+    const count=btn.querySelector('span');
+    if(count) count.textContent=likeCount(p);
+  });
 }
 function toggleSave(id){
   const saved=ui.saved.includes(id);
