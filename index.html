@@ -1,48 +1,52 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
   <title>NAJJUBTYPE</title>
-  <meta name="description" content="냐쭙 명대사·명장면 아카이브" />
-  <link rel="stylesheet" href="./assets/pretendard.min.css" />
-  <link rel="stylesheet" href="./style.css" />
+  <meta name="description" content="냐쭙 명대사·명장면 아카이브">
+  <link rel="stylesheet" href="./assets/pretendard.min.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <header>
     <div class="header-left"><h1>NAJJUBTYPE</h1></div>
   </header>
 
-  <div class="main">
-    <section class="submit-card" aria-labelledby="submit-title">
-      <h2 id="submit-title">+ 명대사 추천</h2>
+  <main class="main">
+    <div id="connectionNotice" class="connection-notice" hidden role="alert"></div>
+
+    <section class="submit-card" aria-labelledby="submitTitle">
+      <h2 id="submitTitle">+ 명대사 추천</h2>
       <div class="form-row">
         <textarea id="quoteInput" rows="3" maxlength="700" placeholder="명대사 (지문 가능)"></textarea>
       </div>
       <div class="form-row">
-        <input id="titleInput" type="text" maxlength="120" placeholder="제목" />
+        <input id="titleInput" type="text" maxlength="120" placeholder="제목">
       </div>
       <div class="form-row">
-        <input id="authorInput" type="text" maxlength="80" placeholder="작가" />
+        <input id="authorInput" type="text" maxlength="80" placeholder="작가">
       </div>
       <div class="form-row">
-        <input id="linkInput" type="text" maxlength="300" placeholder="링크 (없거나 삭제된 경우 생략)" />
+        <input id="linkInput" type="url" maxlength="300" placeholder="링크 (없거나 삭제된 경우 생략)">
       </div>
       <div class="form-row">
         <textarea id="reasonInput" rows="2" maxlength="300" placeholder="추천 이유"></textarea>
       </div>
-      <button class="btn" id="submitPostBtn">제출</button>
+      <button class="btn" id="submitPostBtn" type="button">제출</button>
     </section>
 
     <nav class="sort-bar" aria-label="정렬">
-      <button id="sortTop" class="active" data-view="top">추천순</button>
-      <button id="sortNew" data-view="new">최신순</button>
-      <button id="sortRank" data-view="rank">소트</button>
+      <button id="sortTop" class="active" data-view="top" type="button">추천순</button>
+      <button id="sortNew" data-view="new" type="button">최신순</button>
+      <button id="sortRank" data-view="rank" type="button">소트</button>
     </nav>
 
-    <section id="feedView" class="feed-view">
-      <div id="menuList" class="menu-list"></div>
+    <section id="feedView" class="feed-view" aria-live="polite">
+      <div id="menuList" class="menu-list">
+        <div class="empty-state"><p>불러오는 중...</p></div>
+      </div>
     </section>
 
     <section id="rankView" class="rank-view" hidden>
@@ -50,8 +54,8 @@
         <div class="tournament-header">
           <h2>🏆 명장면/명대사 소트 랭킹</h2>
           <div class="tournament-actions">
-            <button class="tournament-btn tournament-btn-ghost" id="tournamentHistoryBtn">내 기록</button>
-            <button class="tournament-btn" id="tournamentPlayBtn">참여하기</button>
+            <button class="tournament-btn tournament-btn-ghost" id="tournamentHistoryBtn" type="button">내 기록</button>
+            <button class="tournament-btn" id="tournamentPlayBtn" type="button">참여하기</button>
           </div>
         </div>
         <div id="rankingList"></div>
@@ -61,8 +65,8 @@
         <div class="tournament-header">
           <h2 id="gameTitle">라운드 선택</h2>
           <div class="tournament-actions">
-            <button class="tournament-btn tournament-btn-ghost" id="gameRankingBtn">랭킹 보기</button>
-            <button class="tournament-btn" id="tournamentBackBtn" hidden>돌아가기</button>
+            <button class="tournament-btn tournament-btn-ghost" id="gameRankingBtn" type="button">랭킹 보기</button>
+            <button class="tournament-btn" id="tournamentBackBtn" type="button" hidden>돌아가기</button>
           </div>
         </div>
         <div id="roundSelect" class="round-select"></div>
@@ -75,30 +79,39 @@
         <div class="tournament-header">
           <h2>📋 내 소트 기록</h2>
           <div class="tournament-actions">
-            <button class="tournament-btn tournament-btn-ghost" id="historyRankingBtn">랭킹 보기</button>
-            <button class="tournament-btn" id="historyPlayBtn">참여하기</button>
+            <button class="tournament-btn tournament-btn-ghost" id="historyRankingBtn" type="button">랭킹 보기</button>
+            <button class="tournament-btn" id="historyPlayBtn" type="button">참여하기</button>
           </div>
         </div>
         <div id="historyList"></div>
       </div>
     </section>
-  </div>
+  </main>
 
-  <div class="modal-overlay" id="editModal" aria-hidden="true">
-    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="editTitle">
-      <div class="modal-header"><h3 id="editTitle">등록글 수정</h3><button class="close-modal" data-close="editModal" aria-label="닫기">×</button></div>
-      <div class="modal-body edit-form">
-        <label>명대사 · 장면<textarea id="editQuote" rows="5"></textarea></label>
-        <label>작품 제목<input id="editWorkTitle"></label>
-        <label>작가명<input id="editAuthor"></label>
-        <label>포스타입 링크<input id="editLink"></label>
-        <label>추천 이유<textarea id="editReason" rows="2"></textarea></label>
+  <div id="editModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+      <div class="modal-header">
+        <h3 id="editModalTitle">게시글 수정</h3>
+        <button type="button" data-close="editModal" aria-label="닫기">✕</button>
       </div>
-      <div class="modal-footer"><button class="btn-cancel" data-close="editModal">취소</button><button class="btn-confirm" id="saveEditBtn">저장</button></div>
+      <div class="modal-body edit-form">
+        <label>명대사<textarea id="editQuote" rows="4" maxlength="700"></textarea></label>
+        <label>제목<input id="editWorkTitle" type="text" maxlength="120"></label>
+        <label>작가<input id="editAuthor" type="text" maxlength="80"></label>
+        <label>링크<input id="editLink" type="url" maxlength="300"></label>
+        <label>추천 이유<textarea id="editReason" rows="2" maxlength="300"></textarea></label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" data-close="editModal">취소</button>
+        <button class="btn-confirm" id="saveEditBtn" type="button">수정하기</button>
+      </div>
     </div>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="./config.js"></script>
+  <script src="./vendor/supabase.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
