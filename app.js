@@ -21,10 +21,18 @@ let excerptState = {
   post: null,
   mode: 'post',
   roundSize: null,
-  background: 'blush',
-  textColor: '#141415',
+  background: 'dark',
+  textColor: '#f4f4f5',
   fontFamily: 'Pretendard, sans-serif',
-  fontSize: 44
+  fontSize: 40,
+  lineBreak: true,
+  image: null,
+  imageScale: 1,
+  imageX: 0,
+  imageY: 0,
+  pointers: new Map(),
+  pinch: null,
+  dragPoint: null
 };
 let realtimeChannel = null;
 let refreshTimer = null;
@@ -566,55 +574,70 @@ function initExcerptMaker() {
     <div id="excerptModal" class="modal-overlay excerpt-modal" aria-hidden="true">
       <div class="modal-box excerpt-modal-box" role="dialog" aria-modal="true" aria-labelledby="excerptModalTitle">
         <div class="modal-header excerpt-modal-header">
-          <h3 id="excerptModalTitle">냐쭙짤 만들기</h3>
-          <button type="button" data-close="excerptModal" aria-label="닫기">✕</button>
+          <div class="excerpt-head-title">
+            <button class="excerpt-back" type="button" data-close="excerptModal" aria-label="닫기">‹</button>
+            <h3 id="excerptModalTitle">발췌짤 만들기</h3>
+          </div>
+          <div class="excerpt-head-actions">
+            <button class="excerpt-head-button primary" id="excerptDownloadBtn" type="button">이미지 저장</button>
+            <button class="excerpt-head-button" id="excerptShareBtn" type="button">공유</button>
+          </div>
         </div>
         <div class="excerpt-maker">
           <div class="excerpt-preview-wrap">
-            <canvas id="excerptCanvas" width="1080" height="1080" aria-label="발췌짤 미리보기"></canvas>
+            <canvas id="excerptCanvas" width="1080" height="1080" aria-label="배경 이미지 위치와 크기를 직접 조절하는 발췌 미리보기"></canvas>
+            <p class="excerpt-image-help">이미지를 끌어 위치를 조절하고, 두 손가락으로 확대·축소하세요.</p>
           </div>
           <div class="excerpt-controls">
             <div class="excerpt-control-group">
               <span class="excerpt-label">배경</span>
               <div class="excerpt-option-row excerpt-swatches" aria-label="배경 선택">
-                <button class="excerpt-swatch active" type="button" data-excerpt-bg="blush" style="--swatch:#F4F2F3" aria-label="연분홍"></button>
-                <button class="excerpt-swatch" type="button" data-excerpt-bg="paper" style="--swatch:#FFFFFF" aria-label="흰색"></button>
-                <button class="excerpt-swatch" type="button" data-excerpt-bg="night" style="--swatch:#141415" aria-label="검정"></button>
-                <button class="excerpt-swatch excerpt-swatch-blue" type="button" data-excerpt-bg="blue" aria-label="파랑 그라데이션"></button>
-                <button class="excerpt-swatch excerpt-swatch-violet" type="button" data-excerpt-bg="violet" aria-label="보라 그라데이션"></button>
+                <button class="excerpt-swatch active" type="button" data-excerpt-bg="dark">검정</button>
+                <button class="excerpt-swatch" type="button" data-excerpt-bg="light">하양</button>
+                <button class="excerpt-swatch" type="button" data-excerpt-bg="purple-blue">보라·파랑</button>
+                <button class="excerpt-swatch" type="button" data-excerpt-bg="dark-purple">어두운 보라</button>
+                <button class="excerpt-swatch" type="button" data-excerpt-bg="sky-blue">연한 하늘</button>
               </div>
             </div>
             <label class="excerpt-field"><span class="excerpt-label">제목</span><input id="excerptWorkTitle" maxlength="120"></label>
             <label class="excerpt-field"><span class="excerpt-label">작가</span><input id="excerptAuthor" maxlength="80"></label>
-            <label class="excerpt-field"><span class="excerpt-label">발췌문</span><textarea id="excerptText" rows="8" maxlength="700"></textarea></label>
+            <label class="excerpt-field"><span class="excerpt-label">텍스트</span><textarea id="excerptText" rows="8" maxlength="1500"></textarea></label>
             <div class="excerpt-control-group">
               <span class="excerpt-label">글꼴</span>
               <div class="excerpt-segmented" aria-label="글꼴 선택">
                 <button class="active" type="button" data-excerpt-font="Pretendard, sans-serif">기본</button>
-                <button type="button" data-excerpt-font="serif">명조</button>
+                <button type="button" data-excerpt-font="'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">고딕</button>
+                <button type="button" data-excerpt-font="'AppleMyungjo', 'Nanum Myeongjo', 'Batang', serif">명조</button>
               </div>
             </div>
             <div class="excerpt-control-group">
-              <span class="excerpt-label">글자 크기</span>
+              <span class="excerpt-label">글꼴크기</span>
               <div class="excerpt-segmented" aria-label="글자 크기 선택">
-                <button type="button" data-excerpt-size="36">작게</button>
-                <button class="active" type="button" data-excerpt-size="44">보통</button>
-                <button type="button" data-excerpt-size="52">크게</button>
+                <button type="button" data-excerpt-size="32">더 작은 글씨</button>
+                <button type="button" data-excerpt-size="36">작은 글씨</button>
+                <button class="active" type="button" data-excerpt-size="40">중간 글씨</button>
+                <button type="button" data-excerpt-size="46">큰 글씨</button>
               </div>
             </div>
             <div class="excerpt-control-group">
-              <span class="excerpt-label">글자색</span>
+              <span class="excerpt-label">글자 색상</span>
               <div class="excerpt-segmented" aria-label="글자색 선택">
-                <button class="active" type="button" data-excerpt-color="#141415">검정</button>
-                <button type="button" data-excerpt-color="#FFFFFF">흰색</button>
+                <button class="excerpt-color-option active" type="button" data-excerpt-color="#f4f4f5">T 흰색</button>
+                <button class="excerpt-color-option" type="button" data-excerpt-color="#202124">T 검정색</button>
               </div>
+            </div>
+            <div class="excerpt-switch-row">
+              <span class="excerpt-label">줄 바꿈</span>
+              <label class="excerpt-switch">
+                <input id="excerptLineBreak" type="checkbox" checked>
+                <span aria-hidden="true"></span>
+              </label>
+            </div>
+            <div class="excerpt-image-controls">
+              <label class="excerpt-file-button">배경 이미지<input id="excerptImage" type="file" accept="image/*"></label>
+              <button class="excerpt-reset-button" id="excerptImageReset" type="button">위치 초기화</button>
             </div>
           </div>
-        </div>
-        <div class="modal-footer excerpt-modal-footer">
-          <button class="btn-cancel" type="button" data-close="excerptModal">취소</button>
-          <button class="btn-cancel" id="excerptShareBtn" type="button">공유</button>
-          <button class="btn-confirm" id="excerptDownloadBtn" type="button">이미지 저장</button>
         </div>
       </div>
     </div>`);
@@ -638,6 +661,18 @@ function initExcerptMaker() {
     setExcerptActive('[data-excerpt-color]', button);
     drawExcerptCanvas();
   }));
+  $('#excerptLineBreak').addEventListener('change', event => {
+    excerptState.lineBreak = event.target.checked;
+    drawExcerptCanvas();
+  });
+  $('#excerptImage').addEventListener('change', event => loadExcerptImage(event.target.files?.[0]));
+  $('#excerptImageReset').addEventListener('click', resetExcerptImageTransform);
+  $('#excerptCanvas').addEventListener('pointerdown', handleExcerptPointerDown);
+  $('#excerptCanvas').addEventListener('pointermove', handleExcerptPointerMove);
+  $('#excerptCanvas').addEventListener('pointerup', handleExcerptPointerEnd);
+  $('#excerptCanvas').addEventListener('pointercancel', handleExcerptPointerEnd);
+  $('#excerptCanvas').addEventListener('lostpointercapture', handleExcerptPointerEnd);
+  $('#excerptCanvas').addEventListener('wheel', handleExcerptWheel, { passive: false });
   $('#excerptDownloadBtn').addEventListener('click', downloadExcerptImage);
   $('#excerptShareBtn').addEventListener('click', shareExcerptImage);
 }
@@ -650,10 +685,10 @@ function setExcerptBackground(background) {
   excerptState.background = background;
   const active = document.querySelector(`[data-excerpt-bg="${background}"]`);
   if (active) setExcerptActive('[data-excerpt-bg]', active);
-  if (background === 'night' || background === 'blue' || background === 'violet') {
-    excerptState.textColor = '#FFFFFF';
+  if (background === 'dark' || background === 'purple-blue' || background === 'dark-purple') {
+    excerptState.textColor = '#f4f4f5';
   } else {
-    excerptState.textColor = '#141415';
+    excerptState.textColor = '#202124';
   }
   const colorButton = document.querySelector(`[data-excerpt-color="${excerptState.textColor}"]`);
   if (colorButton) setExcerptActive('[data-excerpt-color]', colorButton);
@@ -665,17 +700,27 @@ function openExcerptMaker(post, options = {}) {
   excerptState.post = post;
   excerptState.mode = options.mode === 'winner' ? 'winner' : 'post';
   excerptState.roundSize = Number(options.roundSize) || null;
-  excerptState.background = 'blush';
-  excerptState.textColor = '#141415';
+  excerptState.background = 'dark';
+  excerptState.textColor = '#f4f4f5';
   excerptState.fontFamily = 'Pretendard, sans-serif';
-  excerptState.fontSize = 44;
+  excerptState.fontSize = 40;
+  excerptState.lineBreak = true;
+  excerptState.image = null;
+  excerptState.imageScale = 1;
+  excerptState.imageX = 0;
+  excerptState.imageY = 0;
+  excerptState.pointers.clear();
+  excerptState.pinch = null;
+  excerptState.dragPoint = null;
   $('#excerptWorkTitle').value = post.title || '';
   $('#excerptAuthor').value = post.author || '';
   $('#excerptText').value = post.quote || '';
-  setExcerptActive('[data-excerpt-bg]', $('[data-excerpt-bg="blush"]'));
+  $('#excerptLineBreak').checked = true;
+  $('#excerptImage').value = '';
+  setExcerptActive('[data-excerpt-bg]', $('[data-excerpt-bg="dark"]'));
   setExcerptActive('[data-excerpt-font]', $('[data-excerpt-font="Pretendard, sans-serif"]'));
-  setExcerptActive('[data-excerpt-size]', $('[data-excerpt-size="44"]'));
-  setExcerptActive('[data-excerpt-color]', $('[data-excerpt-color="#141415"]'));
+  setExcerptActive('[data-excerpt-size]', $('[data-excerpt-size="40"]'));
+  setExcerptActive('[data-excerpt-color]', $('[data-excerpt-color="#f4f4f5"]'));
   $('#excerptModalTitle').textContent = excerptState.mode === 'winner' ? '우승짤 만들기' : '발췌짤 만들기';
   openModal('excerptModal');
   requestAnimationFrame(drawExcerptCanvas);
@@ -683,29 +728,176 @@ function openExcerptMaker(post, options = {}) {
 }
 
 function excerptPalette(ctx, width, height) {
-  if (excerptState.background === 'paper') return '#FFFFFF';
-  if (excerptState.background === 'night') return '#141415';
-  if (excerptState.background === 'blue') {
+  if (excerptState.background === 'light') return '#f7f5ef';
+  if (excerptState.background === 'dark') return '#101114';
+  if (excerptState.background === 'purple-blue') {
     const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#D9E7FF');
-    gradient.addColorStop(0.48, '#6593E6');
-    gradient.addColorStop(1, '#244B91');
+    gradient.addColorStop(0, '#7c3aed');
+    gradient.addColorStop(0.52, '#4f46e5');
+    gradient.addColorStop(1, '#0284c7');
     return gradient;
   }
-  if (excerptState.background === 'violet') {
+  if (excerptState.background === 'dark-purple') {
     const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#EEE6F7');
-    gradient.addColorStop(0.5, '#8067A4');
-    gradient.addColorStop(1, '#342743');
+    gradient.addColorStop(0, '#160d21');
+    gradient.addColorStop(0.55, '#342044');
+    gradient.addColorStop(1, '#615174');
     return gradient;
   }
-  return '#F4F2F3';
+  if (excerptState.background === 'sky-blue') {
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#edf9ff');
+    gradient.addColorStop(0.52, '#cceafb');
+    gradient.addColorStop(1, '#a9d3ea');
+    return gradient;
+  }
+  return '#101114';
 }
 
-function wrapExcerptText(ctx, value, maxWidth) {
-  const source = String(value || '').replace(/\r\n?/g, '\n').trim();
+function resetExcerptImageTransform() {
+  excerptState.imageScale = 1;
+  excerptState.imageX = 0;
+  excerptState.imageY = 0;
+  excerptState.pointers.clear();
+  excerptState.pinch = null;
+  excerptState.dragPoint = null;
+  $('#excerptCanvas').classList.remove('is-dragging');
+  drawExcerptCanvas();
+}
+
+function loadExcerptImage(file) {
+  if (!file) {
+    excerptState.image = null;
+    resetExcerptImageTransform();
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const image = new Image();
+    image.onload = () => {
+      excerptState.image = image;
+      resetExcerptImageTransform();
+    };
+    image.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function excerptCoverMetrics(scale = excerptState.imageScale) {
+  const image = excerptState.image;
+  const canvas = $('#excerptCanvas');
+  if (!image || !canvas) return null;
+  const coverScale = Math.max(canvas.width / image.width, canvas.height / image.height);
+  const actualScale = coverScale * scale;
+  const drawWidth = image.width * actualScale;
+  const drawHeight = image.height * actualScale;
+  return {
+    drawWidth,
+    drawHeight,
+    x: (canvas.width - drawWidth) / 2 + excerptState.imageX,
+    y: (canvas.height - drawHeight) / 2 + excerptState.imageY
+  };
+}
+
+function excerptCanvasPoint(event) {
+  const canvas = $('#excerptCanvas');
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (event.clientX - rect.left) * (canvas.width / rect.width),
+    y: (event.clientY - rect.top) * (canvas.height / rect.height)
+  };
+}
+
+function zoomExcerptImageAt(point, nextScale, anchor = null) {
+  if (!excerptState.image) return;
+  const current = excerptCoverMetrics();
+  if (!current) return;
+  const fixedAnchor = anchor || {
+    u: (point.x - current.x) / current.drawWidth,
+    v: (point.y - current.y) / current.drawHeight
+  };
+  const scale = Math.min(4, Math.max(0.5, nextScale));
+  const canvas = $('#excerptCanvas');
+  const coverScale = Math.max(canvas.width / excerptState.image.width, canvas.height / excerptState.image.height);
+  const drawWidth = excerptState.image.width * coverScale * scale;
+  const drawHeight = excerptState.image.height * coverScale * scale;
+  excerptState.imageScale = scale;
+  excerptState.imageX = point.x - fixedAnchor.u * drawWidth - (canvas.width - drawWidth) / 2;
+  excerptState.imageY = point.y - fixedAnchor.v * drawHeight - (canvas.height - drawHeight) / 2;
+  drawExcerptCanvas();
+}
+
+function beginExcerptPinch() {
+  if (excerptState.pointers.size < 2 || !excerptState.image) {
+    excerptState.pinch = null;
+    return;
+  }
+  const [a, b] = [...excerptState.pointers.values()];
+  const center = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  const metrics = excerptCoverMetrics();
+  excerptState.pinch = {
+    distance: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+    scale: excerptState.imageScale,
+    anchor: {
+      u: (center.x - metrics.x) / metrics.drawWidth,
+      v: (center.y - metrics.y) / metrics.drawHeight
+    }
+  };
+}
+
+function handleExcerptPointerDown(event) {
+  if (!excerptState.image) return;
+  event.preventDefault();
+  $('#excerptCanvas').setPointerCapture?.(event.pointerId);
+  const point = excerptCanvasPoint(event);
+  excerptState.pointers.set(event.pointerId, point);
+  $('#excerptCanvas').classList.add('is-dragging');
+  if (excerptState.pointers.size === 1) excerptState.dragPoint = point;
+  else beginExcerptPinch();
+}
+
+function handleExcerptPointerMove(event) {
+  if (!excerptState.pointers.has(event.pointerId) || !excerptState.image) return;
+  event.preventDefault();
+  const point = excerptCanvasPoint(event);
+  excerptState.pointers.set(event.pointerId, point);
+  if (excerptState.pointers.size >= 2) {
+    if (!excerptState.pinch) beginExcerptPinch();
+    const [a, b] = [...excerptState.pointers.values()];
+    const center = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    const distance = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    zoomExcerptImageAt(center, excerptState.pinch.scale * (distance / excerptState.pinch.distance), excerptState.pinch.anchor);
+    return;
+  }
+  if (excerptState.dragPoint) {
+    excerptState.imageX += point.x - excerptState.dragPoint.x;
+    excerptState.imageY += point.y - excerptState.dragPoint.y;
+    excerptState.dragPoint = point;
+    drawExcerptCanvas();
+  }
+}
+
+function handleExcerptPointerEnd(event) {
+  excerptState.pointers.delete(event.pointerId);
+  try { $('#excerptCanvas').releasePointerCapture?.(event.pointerId); } catch (_) {}
+  excerptState.pinch = null;
+  excerptState.dragPoint = excerptState.pointers.size === 1 ? [...excerptState.pointers.values()][0] : null;
+  if (!excerptState.pointers.size) $('#excerptCanvas').classList.remove('is-dragging');
+}
+
+function handleExcerptWheel(event) {
+  if (!excerptState.image) return;
+  event.preventDefault();
+  const factor = Math.exp(-event.deltaY * 0.0015);
+  zoomExcerptImageAt(excerptCanvasPoint(event), excerptState.imageScale * factor);
+}
+
+function wrapExcerptText(ctx, value, maxWidth, preserveLineBreaks = true) {
+  const normalized = String(value || '').replace(/\r\n?/g, '\n').trim();
+  const source = preserveLineBreaks ? normalized : normalized.replace(/\s+/g, ' ');
   const lines = [];
-  source.split('\n').forEach((paragraph, paragraphIndex, paragraphs) => {
+  const paragraphs = preserveLineBreaks ? source.split(/\n+/) : [source];
+  paragraphs.forEach(paragraph => {
     if (!paragraph) {
       lines.push('');
     } else {
@@ -721,39 +913,21 @@ function wrapExcerptText(ctx, value, maxWidth) {
       }
       if (line) lines.push(line);
     }
-    if (paragraphIndex < paragraphs.length - 1 && paragraph && paragraphs[paragraphIndex + 1]) lines.push('');
+    lines.push('');
   });
-  return lines;
+  return lines.filter((line, index, all) => line || (index > 0 && index < all.length - 1));
 }
 
-function fitExcerptText(ctx, value, maxWidth, maxHeight) {
-  let size = excerptState.fontSize;
-  let lines = [];
-  let lineHeight = 0;
-  let height = Infinity;
-  while (size >= 24) {
-    ctx.font = `400 ${size}px ${excerptState.fontFamily}`;
-    lines = wrapExcerptText(ctx, value, maxWidth);
-    lineHeight = Math.round(size * 1.66);
-    height = lines.reduce((sum, line) => sum + (line ? lineHeight : Math.round(lineHeight * 0.55)), 0);
-    if (height <= maxHeight || size === 24) break;
-    size -= 2;
+function limitExcerptLines(lines, maxTextLines) {
+  const visible = [];
+  let count = 0;
+  for (const line of lines) {
+    if (line && count >= maxTextLines) break;
+    visible.push(line);
+    if (line) count += 1;
   }
-  if (height > maxHeight) {
-    const visible = [];
-    let used = 0;
-    for (const line of lines) {
-      const step = line ? lineHeight : Math.round(lineHeight * 0.55);
-      if (used + step > maxHeight) break;
-      visible.push(line);
-      used += step;
-    }
-    const lastTextIndex = visible.map(Boolean).lastIndexOf(true);
-    if (lastTextIndex >= 0) visible[lastTextIndex] = `${visible[lastTextIndex].replace(/[.\s…]+$/, '')}…`;
-    lines = visible;
-    height = used;
-  }
-  return { size, lines, lineHeight, height };
+  while (visible.length && !visible[visible.length - 1]) visible.pop();
+  return visible;
 }
 
 function drawExcerptCanvas() {
@@ -762,49 +936,76 @@ function drawExcerptCanvas() {
   const ctx = canvas.getContext('2d');
   const width = canvas.width;
   const height = canvas.height;
-  const margin = 82;
+  const margin = 76;
   const textColor = excerptState.textColor;
-  const mutedColor = textColor === '#FFFFFF' ? 'rgba(255,255,255,0.66)' : 'rgba(20,20,21,0.58)';
+  const isLightText = textColor === '#f4f4f5';
+  const mutedColor = isLightText ? 'rgba(244,244,245,0.78)' : 'rgba(32,33,36,0.72)';
+  const darkBackground = !['light', 'sky-blue'].includes(excerptState.background);
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = excerptPalette(ctx, width, height);
   ctx.fillRect(0, 0, width, height);
 
-  if (excerptState.mode === 'winner') {
-    ctx.fillStyle = textColor === '#FFFFFF' ? 'rgba(255,255,255,0.16)' : 'rgba(20,20,21,0.08)';
-    roundRect(ctx, margin, 72, 220, 62, 31);
-    ctx.fill();
-    ctx.fillStyle = textColor;
-    ctx.font = `600 26px ${excerptState.fontFamily}`;
-    ctx.textBaseline = 'middle';
-    const roundLabel = excerptState.roundSize ? `${excerptState.roundSize}강 소트 우승` : '소트 우승';
-    ctx.fillText(roundLabel, margin + 28, 103);
+  if (excerptState.image) {
+    const metrics = excerptCoverMetrics();
+    ctx.drawImage(excerptState.image, metrics.x, metrics.y, metrics.drawWidth, metrics.drawHeight);
+    const overlay = ctx.createLinearGradient(0, 0, 0, height);
+    overlay.addColorStop(0, isLightText ? 'rgba(0,0,0,0.20)' : 'rgba(255,255,255,0.12)');
+    overlay.addColorStop(0.55, isLightText ? 'rgba(0,0,0,0.36)' : 'rgba(255,255,255,0.42)');
+    overlay.addColorStop(1, isLightText ? 'rgba(0,0,0,0.68)' : 'rgba(255,255,255,0.72)');
+    ctx.fillStyle = overlay;
+    ctx.fillRect(0, 0, width, height);
   }
 
-  const quote = $('#excerptText').value.trim() || '발췌문을 입력해 주세요.';
-  const quoteTopLimit = excerptState.mode === 'winner' ? 185 : 140;
-  const fitted = fitExcerptText(ctx, quote, width - margin * 2, 540);
-  ctx.font = `400 ${fitted.size}px ${excerptState.fontFamily}`;
+  if (excerptState.mode === 'winner') {
+    ctx.fillStyle = isLightText ? 'rgba(255,255,255,0.14)' : 'rgba(32,33,36,0.10)';
+    roundRect(ctx, margin, 58, 230, 58, 29);
+    ctx.fill();
+    ctx.fillStyle = textColor;
+    ctx.font = `600 24px ${excerptState.fontFamily}`;
+    ctx.textBaseline = 'middle';
+    const roundLabel = excerptState.roundSize ? `${excerptState.roundSize}강 소트 우승` : '소트 우승';
+    ctx.fillText(roundLabel, margin + 26, 87);
+  }
+
+  let quote = $('#excerptText').value.trim() || '발췌 텍스트를 입력해 주세요.';
+  const quotePairs = { '"': '"', '“': '”' };
+  if (quote.length >= 2 && quotePairs[quote[0]] === quote[quote.length - 1]) quote = quote.slice(1, -1).trim();
+  const fontSize = excerptState.fontSize;
+  const lineHeight = Math.round(fontSize * 2.35);
+  const paragraphGap = Math.round(fontSize * 0.58);
+  ctx.font = `${fontSize}px ${excerptState.fontFamily}`;
   ctx.textBaseline = 'top';
   ctx.fillStyle = textColor;
-  let y = quoteTopLimit + Math.max(0, (540 - fitted.height) / 2);
-  fitted.lines.forEach(line => {
+  const textWidth = Math.min(width - margin * 2, 850);
+  const maxTextLines = Math.min(9, Math.floor(640 / lineHeight) + 1);
+  const lines = limitExcerptLines(wrapExcerptText(ctx, quote, textWidth, excerptState.lineBreak), maxTextLines);
+  const positionedLines = [];
+  let lineOffset = 0;
+  lines.forEach(line => {
     if (line) {
-      ctx.fillText(line, margin, y);
-      y += fitted.lineHeight;
+      positionedLines.push({ line, offset: lineOffset });
+      lineOffset += lineHeight;
     } else {
-      y += Math.round(fitted.lineHeight * 0.55);
+      lineOffset += paragraphGap;
     }
   });
+  const lastLineOffset = positionedLines[positionedLines.length - 1]?.offset || 0;
+  const quoteCenterY = Math.round(height * 0.407);
+  const quoteTop = Math.round(quoteCenterY - lastLineOffset / 2);
+  positionedLines.forEach(({ line, offset }) => ctx.fillText(line, margin, quoteTop + offset));
 
   const title = $('#excerptWorkTitle').value.trim() || '작품 제목';
   const author = $('#excerptAuthor').value.trim() || '작가';
-  ctx.fillStyle = textColor;
-  ctx.font = `600 34px ${excerptState.fontFamily}`;
-  ctx.fillText(title, margin, 822);
   ctx.fillStyle = mutedColor;
-  ctx.font = `400 28px ${excerptState.fontFamily}`;
-  ctx.fillText(author, margin, 878);
-  ctx.font = `600 25px ${excerptState.fontFamily}`;
+  const lastLineY = quoteTop + lastLineOffset;
+  const metaY = Math.min(Math.max(lastLineY + fontSize + 76, 640), height - 190);
+  ctx.font = `400 40px ${excerptState.fontFamily}`;
+  ctx.fillText(title, margin, metaY);
+  ctx.fillStyle = isLightText ? 'rgba(244,244,245,0.58)' : 'rgba(32,33,36,0.56)';
+  ctx.font = `32px ${excerptState.fontFamily}`;
+  ctx.fillText(author, margin, metaY + 58);
+  ctx.fillStyle = darkBackground ? 'rgba(244,244,245,0.38)' : 'rgba(32,33,36,0.38)';
+  ctx.font = `24px ${excerptState.fontFamily}`;
   ctx.textAlign = 'right';
   ctx.fillText('N♥JTYPE', width - margin, height - 78);
   ctx.textAlign = 'left';
