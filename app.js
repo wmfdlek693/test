@@ -1502,7 +1502,7 @@ function rankCard(post, position) {
 function loadTournamentLeaderboard() {
   const list = $('#rankingList');
   if (!list) return;
-  const ranked = [...posts].sort((a, b) =>
+  const ranked = posts.filter(post => post.titles > 0).sort((a, b) =>
     b.titles - a.titles || likeCount(b) - likeCount(a) || new Date(b.createdAt) - new Date(a.createdAt)
   );
   list.innerHTML = ranked.length
