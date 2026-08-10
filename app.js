@@ -4,7 +4,6 @@ const LEGACY_POSTS_KEY = 'najjubtype-posts-v4';
 const LEGACY_STATE_KEY = 'najjubtype-state-v4';
 const SAVED_KEY = 'najjubtype-saved-v1';
 const MIGRATION_PREFIX = 'najjubtype-supabase-migration-v1:';
-const SHARE_URL = 'https://najjubtype.vercel.app/';
 const avatar = './assets/avatar_blank.png';
 
 let db = null;
@@ -18,6 +17,15 @@ let sortHistory = [];
 let currentView = 'top';
 let editingPostId = null;
 let sortSession = null;
+let excerptState = {
+  post: null,
+  mode: 'post',
+  roundSize: null,
+  background: 'blush',
+  textColor: '#141415',
+  fontFamily: 'Pretendard, sans-serif',
+  fontSize: 44
+};
 let realtimeChannel = null;
 let refreshTimer = null;
 let isReady = false;
@@ -275,6 +283,10 @@ function renderCard(post, context) {
   const saved = savedIds.has(post.id);
   const link = safeLink(post.link);
   const open = openCommentIds.has(cardKey);
+  const excerptAction = context === 'feed' && currentView === 'top';
+  const bookmarkButton = excerptAction
+    ? `<button class="post-icon-btn" type="button" data-excerpt="${esc(post.id)}" aria-label="발췌짤 만들기" title="발췌짤 만들기">${icons.bookmark}</button>`
+    : `<button class="post-icon-btn ${saved ? 'saved' : ''}" type="button" data-save="${esc(post.id)}" aria-label="저장" aria-pressed="${saved}">${icons.bookmark}</button>`;
   const dropdown = post.isOwner
     ? `<button type="button" data-edit="${esc(post.id)}">수정</button><button type="button" data-delete="${esc(post.id)}">삭제</button>`
     : `<button type="button" data-copy="${esc(post.id)}">링크 복사</button>`;
@@ -285,9 +297,9 @@ function renderCard(post, context) {
       <div class="post-more-wrapper"><button class="post-more-btn" aria-label="더보기" type="button" data-menu="${esc(cardKey)}">${icons.more}</button><div class="post-dropdown" data-dropdown="${esc(cardKey)}">${dropdown}</div></div>
     </div>
     <div class="post-content"><h2 class="post-title">${link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">${esc(post.title)}</a>` : esc(post.title)}</h2><p class="post-body">${esc(post.quote)}</p></div>
-    <div class="post-actions"><div class="post-actions-left"><button class="vote-btn up ${liked ? 'active' : ''}" type="button" data-like="${esc(post.id)}" aria-pressed="${liked}">${icons.heart}<span>${likeCount(post)}</span></button><button class="toggle-comments" type="button" data-comment="${esc(post.id)}" aria-expanded="${open}">${icons.comment}<span>${comments.length}</span></button></div><div class="post-actions-right"><button class="post-icon-btn ${saved ? 'saved' : ''}" type="button" data-save="${esc(post.id)}" aria-label="저장" aria-pressed="${saved}">${icons.bookmark}</button><button class="post-icon-btn" type="button" data-share="${esc(post.id)}" aria-label="공유">${icons.share}</button></div></div>
+    <div class="post-actions"><div class="post-actions-left"><button class="vote-btn up ${liked ? 'active' : ''}" type="button" data-like="${esc(post.id)}" aria-pressed="${liked}">${icons.heart}<span>${likeCount(post)}</span></button><button class="toggle-comments" type="button" data-comment="${esc(post.id)}" aria-expanded="${open}">${icons.comment}<span>${comments.length}</span></button></div><div class="post-actions-right">${bookmarkButton}<button class="post-icon-btn" type="button" data-share="${esc(post.id)}" aria-label="공유">${icons.share}</button></div></div>
     ${post.reason ? `<div class="post-comment-bubble"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(post.reason)}</p></div>` : ''}
-    <div class="comments-section ${open ? 'open' : ''}"><div class="comment-list">${renderCommentsHTML(comments)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea placeholder="냐쭙타입에게 힘이 되는 한마디 남기기" rows="1" maxlength="500"></textarea><div class="comment-form-row"><button class="btn" type="button" data-submit-comment="${esc(post.id)}">등록</button></div></div></div>
+    <div class="comments-section ${open ? 'open' : ''}"><div class="comment-list">${renderCommentsHTML(comments)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea placeholder="공감할래말래" rows="1" maxlength="500"></textarea><div class="comment-form-row"><button class="btn" type="button" data-submit-comment="${esc(post.id)}">등록</button></div></div></div>
   </div></article>`;
 }
 
@@ -449,7 +461,7 @@ async function sharePost(id) {
   const post = postById(id);
   if (!post) return;
   const text = `${post.title} — ${post.author}\n\n${post.quote}\n\n#NAJJUBTYPE`;
-  const url = SHARE_URL;
+  const url = safeLink(post.link) || location.href;
   try {
     if (navigator.share) await navigator.share({ title: post.title, text, url });
     else {
@@ -547,6 +559,312 @@ function closeModal(id) {
   modal.classList.remove('show');
   modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
+}
+
+function initExcerptMaker() {
+  document.body.insertAdjacentHTML('beforeend', `
+    <div id="excerptModal" class="modal-overlay excerpt-modal" aria-hidden="true">
+      <div class="modal-box excerpt-modal-box" role="dialog" aria-modal="true" aria-labelledby="excerptModalTitle">
+        <div class="modal-header excerpt-modal-header">
+          <h3 id="excerptModalTitle">냐쭙짤 만들기</h3>
+          <button type="button" data-close="excerptModal" aria-label="닫기">✕</button>
+        </div>
+        <div class="excerpt-maker">
+          <div class="excerpt-preview-wrap">
+            <canvas id="excerptCanvas" width="1080" height="1080" aria-label="발췌짤 미리보기"></canvas>
+          </div>
+          <div class="excerpt-controls">
+            <div class="excerpt-control-group">
+              <span class="excerpt-label">배경</span>
+              <div class="excerpt-option-row excerpt-swatches" aria-label="배경 선택">
+                <button class="excerpt-swatch active" type="button" data-excerpt-bg="blush" style="--swatch:#F4F2F3" aria-label="연분홍"></button>
+                <button class="excerpt-swatch" type="button" data-excerpt-bg="paper" style="--swatch:#FFFFFF" aria-label="흰색"></button>
+                <button class="excerpt-swatch" type="button" data-excerpt-bg="night" style="--swatch:#141415" aria-label="검정"></button>
+                <button class="excerpt-swatch excerpt-swatch-blue" type="button" data-excerpt-bg="blue" aria-label="파랑 그라데이션"></button>
+                <button class="excerpt-swatch excerpt-swatch-violet" type="button" data-excerpt-bg="violet" aria-label="보라 그라데이션"></button>
+              </div>
+            </div>
+            <label class="excerpt-field"><span class="excerpt-label">제목</span><input id="excerptWorkTitle" maxlength="120"></label>
+            <label class="excerpt-field"><span class="excerpt-label">작가</span><input id="excerptAuthor" maxlength="80"></label>
+            <label class="excerpt-field"><span class="excerpt-label">발췌문</span><textarea id="excerptText" rows="8" maxlength="700"></textarea></label>
+            <div class="excerpt-control-group">
+              <span class="excerpt-label">글꼴</span>
+              <div class="excerpt-segmented" aria-label="글꼴 선택">
+                <button class="active" type="button" data-excerpt-font="Pretendard, sans-serif">기본</button>
+                <button type="button" data-excerpt-font="serif">명조</button>
+              </div>
+            </div>
+            <div class="excerpt-control-group">
+              <span class="excerpt-label">글자 크기</span>
+              <div class="excerpt-segmented" aria-label="글자 크기 선택">
+                <button type="button" data-excerpt-size="36">작게</button>
+                <button class="active" type="button" data-excerpt-size="44">보통</button>
+                <button type="button" data-excerpt-size="52">크게</button>
+              </div>
+            </div>
+            <div class="excerpt-control-group">
+              <span class="excerpt-label">글자색</span>
+              <div class="excerpt-segmented" aria-label="글자색 선택">
+                <button class="active" type="button" data-excerpt-color="#141415">검정</button>
+                <button type="button" data-excerpt-color="#FFFFFF">흰색</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer excerpt-modal-footer">
+          <button class="btn-cancel" type="button" data-close="excerptModal">취소</button>
+          <button class="btn-cancel" id="excerptShareBtn" type="button">공유</button>
+          <button class="btn-confirm" id="excerptDownloadBtn" type="button">이미지 저장</button>
+        </div>
+      </div>
+    </div>`);
+
+  ['#excerptWorkTitle', '#excerptAuthor', '#excerptText'].forEach(selector => {
+    $(selector).addEventListener('input', drawExcerptCanvas);
+  });
+  $$('[data-excerpt-bg]').forEach(button => button.addEventListener('click', () => setExcerptBackground(button.dataset.excerptBg)));
+  $$('[data-excerpt-font]').forEach(button => button.addEventListener('click', () => {
+    excerptState.fontFamily = button.dataset.excerptFont;
+    setExcerptActive('[data-excerpt-font]', button);
+    drawExcerptCanvas();
+  }));
+  $$('[data-excerpt-size]').forEach(button => button.addEventListener('click', () => {
+    excerptState.fontSize = Number(button.dataset.excerptSize);
+    setExcerptActive('[data-excerpt-size]', button);
+    drawExcerptCanvas();
+  }));
+  $$('[data-excerpt-color]').forEach(button => button.addEventListener('click', () => {
+    excerptState.textColor = button.dataset.excerptColor;
+    setExcerptActive('[data-excerpt-color]', button);
+    drawExcerptCanvas();
+  }));
+  $('#excerptDownloadBtn').addEventListener('click', downloadExcerptImage);
+  $('#excerptShareBtn').addEventListener('click', shareExcerptImage);
+}
+
+function setExcerptActive(selector, activeButton) {
+  $$(selector).forEach(button => button.classList.toggle('active', button === activeButton));
+}
+
+function setExcerptBackground(background) {
+  excerptState.background = background;
+  const active = document.querySelector(`[data-excerpt-bg="${background}"]`);
+  if (active) setExcerptActive('[data-excerpt-bg]', active);
+  if (background === 'night' || background === 'blue' || background === 'violet') {
+    excerptState.textColor = '#FFFFFF';
+  } else {
+    excerptState.textColor = '#141415';
+  }
+  const colorButton = document.querySelector(`[data-excerpt-color="${excerptState.textColor}"]`);
+  if (colorButton) setExcerptActive('[data-excerpt-color]', colorButton);
+  drawExcerptCanvas();
+}
+
+function openExcerptMaker(post, options = {}) {
+  if (!post) return;
+  excerptState.post = post;
+  excerptState.mode = options.mode === 'winner' ? 'winner' : 'post';
+  excerptState.roundSize = Number(options.roundSize) || null;
+  excerptState.background = 'blush';
+  excerptState.textColor = '#141415';
+  excerptState.fontFamily = 'Pretendard, sans-serif';
+  excerptState.fontSize = 44;
+  $('#excerptWorkTitle').value = post.title || '';
+  $('#excerptAuthor').value = post.author || '';
+  $('#excerptText').value = post.quote || '';
+  setExcerptActive('[data-excerpt-bg]', $('[data-excerpt-bg="blush"]'));
+  setExcerptActive('[data-excerpt-font]', $('[data-excerpt-font="Pretendard, sans-serif"]'));
+  setExcerptActive('[data-excerpt-size]', $('[data-excerpt-size="44"]'));
+  setExcerptActive('[data-excerpt-color]', $('[data-excerpt-color="#141415"]'));
+  $('#excerptModalTitle').textContent = excerptState.mode === 'winner' ? '우승짤 만들기' : '발췌짤 만들기';
+  openModal('excerptModal');
+  requestAnimationFrame(drawExcerptCanvas);
+  document.fonts?.ready.then(drawExcerptCanvas);
+}
+
+function excerptPalette(ctx, width, height) {
+  if (excerptState.background === 'paper') return '#FFFFFF';
+  if (excerptState.background === 'night') return '#141415';
+  if (excerptState.background === 'blue') {
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#D9E7FF');
+    gradient.addColorStop(0.48, '#6593E6');
+    gradient.addColorStop(1, '#244B91');
+    return gradient;
+  }
+  if (excerptState.background === 'violet') {
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#EEE6F7');
+    gradient.addColorStop(0.5, '#8067A4');
+    gradient.addColorStop(1, '#342743');
+    return gradient;
+  }
+  return '#F4F2F3';
+}
+
+function wrapExcerptText(ctx, value, maxWidth) {
+  const source = String(value || '').replace(/\r\n?/g, '\n').trim();
+  const lines = [];
+  source.split('\n').forEach((paragraph, paragraphIndex, paragraphs) => {
+    if (!paragraph) {
+      lines.push('');
+    } else {
+      let line = '';
+      for (const character of [...paragraph]) {
+        const next = line + character;
+        if (line && ctx.measureText(next).width > maxWidth) {
+          lines.push(line);
+          line = character.trimStart();
+        } else {
+          line = next;
+        }
+      }
+      if (line) lines.push(line);
+    }
+    if (paragraphIndex < paragraphs.length - 1 && paragraph && paragraphs[paragraphIndex + 1]) lines.push('');
+  });
+  return lines;
+}
+
+function fitExcerptText(ctx, value, maxWidth, maxHeight) {
+  let size = excerptState.fontSize;
+  let lines = [];
+  let lineHeight = 0;
+  let height = Infinity;
+  while (size >= 24) {
+    ctx.font = `400 ${size}px ${excerptState.fontFamily}`;
+    lines = wrapExcerptText(ctx, value, maxWidth);
+    lineHeight = Math.round(size * 1.66);
+    height = lines.reduce((sum, line) => sum + (line ? lineHeight : Math.round(lineHeight * 0.55)), 0);
+    if (height <= maxHeight || size === 24) break;
+    size -= 2;
+  }
+  if (height > maxHeight) {
+    const visible = [];
+    let used = 0;
+    for (const line of lines) {
+      const step = line ? lineHeight : Math.round(lineHeight * 0.55);
+      if (used + step > maxHeight) break;
+      visible.push(line);
+      used += step;
+    }
+    const lastTextIndex = visible.map(Boolean).lastIndexOf(true);
+    if (lastTextIndex >= 0) visible[lastTextIndex] = `${visible[lastTextIndex].replace(/[.\s…]+$/, '')}…`;
+    lines = visible;
+    height = used;
+  }
+  return { size, lines, lineHeight, height };
+}
+
+function drawExcerptCanvas() {
+  const canvas = $('#excerptCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+  const margin = 82;
+  const textColor = excerptState.textColor;
+  const mutedColor = textColor === '#FFFFFF' ? 'rgba(255,255,255,0.66)' : 'rgba(20,20,21,0.58)';
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = excerptPalette(ctx, width, height);
+  ctx.fillRect(0, 0, width, height);
+
+  if (excerptState.mode === 'winner') {
+    ctx.fillStyle = textColor === '#FFFFFF' ? 'rgba(255,255,255,0.16)' : 'rgba(20,20,21,0.08)';
+    roundRect(ctx, margin, 72, 220, 62, 31);
+    ctx.fill();
+    ctx.fillStyle = textColor;
+    ctx.font = `600 26px ${excerptState.fontFamily}`;
+    ctx.textBaseline = 'middle';
+    const roundLabel = excerptState.roundSize ? `${excerptState.roundSize}강 소트 우승` : '소트 우승';
+    ctx.fillText(roundLabel, margin + 28, 103);
+  }
+
+  const quote = $('#excerptText').value.trim() || '발췌문을 입력해 주세요.';
+  const quoteTopLimit = excerptState.mode === 'winner' ? 185 : 140;
+  const fitted = fitExcerptText(ctx, quote, width - margin * 2, 540);
+  ctx.font = `400 ${fitted.size}px ${excerptState.fontFamily}`;
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = textColor;
+  let y = quoteTopLimit + Math.max(0, (540 - fitted.height) / 2);
+  fitted.lines.forEach(line => {
+    if (line) {
+      ctx.fillText(line, margin, y);
+      y += fitted.lineHeight;
+    } else {
+      y += Math.round(fitted.lineHeight * 0.55);
+    }
+  });
+
+  const title = $('#excerptWorkTitle').value.trim() || '작품 제목';
+  const author = $('#excerptAuthor').value.trim() || '작가';
+  ctx.fillStyle = textColor;
+  ctx.font = `600 34px ${excerptState.fontFamily}`;
+  ctx.fillText(title, margin, 822);
+  ctx.fillStyle = mutedColor;
+  ctx.font = `400 28px ${excerptState.fontFamily}`;
+  ctx.fillText(author, margin, 878);
+  ctx.font = `600 25px ${excerptState.fontFamily}`;
+  ctx.textAlign = 'right';
+  ctx.fillText('N♥JTYPE', width - margin, height - 78);
+  ctx.textAlign = 'left';
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
+function excerptCanvasBlob() {
+  drawExcerptCanvas();
+  return new Promise(resolve => $('#excerptCanvas').toBlob(resolve, 'image/png'));
+}
+
+function excerptFileName() {
+  const title = $('#excerptWorkTitle').value.trim() || 'najjubtype-excerpt';
+  const suffix = excerptState.mode === 'winner' ? '-winner' : '-excerpt';
+  return `${title}${suffix}.png`.replace(/[\\/:*?"<>|]/g, '_');
+}
+
+async function downloadExcerptImage() {
+  const blob = await excerptCanvasBlob();
+  if (!blob) {
+    showToast('이미지를 만들지 못했어요.');
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = excerptFileName();
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('이미지를 저장했어요.');
+}
+
+async function shareExcerptImage() {
+  const blob = await excerptCanvasBlob();
+  if (!blob) {
+    showToast('이미지를 만들지 못했어요.');
+    return;
+  }
+  const file = new File([blob], excerptFileName(), { type: 'image/png' });
+  try {
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: $('#excerptWorkTitle').value.trim() || '냐쭙짤' });
+    } else {
+      await downloadExcerptImage();
+    }
+  } catch (error) {
+    if (error.name !== 'AbortError') showToast('공유하지 못했어요.');
+  }
 }
 
 function showTournamentSection(which) {
@@ -648,7 +966,7 @@ function matchCardHtml(post, side) {
     <div class="post-content"><h2 class="post-title">${esc(post.title)}</h2><p class="post-body">${esc(post.quote)}</p></div>
     <div class="post-actions"><div class="post-actions-left"><span class="vote-btn up">${icons.heart}<span>${likeCount(post)}</span></span><button class="toggle-comments" type="button" data-comment="${esc(post.id)}" aria-expanded="${open}">${icons.comment}<span>${comments.length}</span></button></div><div class="post-actions-right"><span class="post-icon-btn">${icons.bookmark}</span><span class="post-icon-btn">${icons.share}</span></div></div>
     ${post.reason ? `<div class="post-comment-bubble"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(post.reason)}</p></div>` : ''}
-    <div class="comments-section ${open ? 'open' : ''}"><div class="comment-list">${renderCommentsHTML(comments)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea placeholder="냐쭙타입에게 힘이 되는 한마디 남기기" rows="1" maxlength="500"></textarea><div class="comment-form-row"><button class="btn" type="button" data-submit-comment="${esc(post.id)}">등록</button></div></div></div>
+    <div class="comments-section ${open ? 'open' : ''}"><div class="comment-list">${renderCommentsHTML(comments)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea placeholder="공감할래말래" rows="1" maxlength="500"></textarea><div class="comment-form-row"><button class="btn" type="button" data-submit-comment="${esc(post.id)}">등록</button></div></div></div>
   </div></article>`;
 }
 
@@ -725,7 +1043,10 @@ async function finishTournament(winner) {
 
 function showTournamentResult(ranking) {
   showTournamentSection('result');
-  $('#tournamentResult').innerHTML = `<div class="tournament-result"><div class="winner-label">🏆 우승</div>${rankCard(ranking[0], 0)}<div class="result-ranking">${ranking.slice(1).map((post, index) => `<div class="result-ranking-item"><div class="result-rank">${index === 0 ? '🥈' : index === 1 ? '🥉' : index + 2}</div><div class="result-ranking-info"><div class="result-ranking-title">${esc(post.title)} <span class="result-ranking-author">· ${esc(post.author)}</span></div><div class="post-body result-quote">${esc(post.quote)}</div></div></div>`).join('')}</div><div class="result-actions"><button class="tournament-btn tournament-btn-ghost" id="resultRankingBtn" type="button">랭킹 보기</button><button class="tournament-btn" id="resultAgainBtn" type="button">다시하기</button></div></div>`;
+  $('#tournamentResult').innerHTML = `<div class="tournament-result"><div class="winner-label">🏆 우승</div>${rankCard(ranking[0], 0)}<div class="result-ranking">${ranking.slice(1).map((post, index) => `<div class="result-ranking-item"><div class="result-rank">${index === 0 ? '🥈' : index === 1 ? '🥉' : index + 2}</div><div class="result-ranking-info"><div class="result-ranking-title">${esc(post.title)} <span class="result-ranking-author">· ${esc(post.author)}</span></div><div class="post-body result-quote">${esc(post.quote)}</div></div></div>`).join('')}</div><div class="result-actions"><button class="tournament-btn" id="resultExcerptBtn" type="button">우승짤 만들기</button><button class="tournament-btn tournament-btn-ghost" id="resultRankingBtn" type="button">랭킹 보기</button><button class="tournament-btn tournament-btn-ghost" id="resultAgainBtn" type="button">다시하기</button></div></div>`;
+  $('#resultExcerptBtn').addEventListener('click', () => {
+    openExcerptMaker(ranking[0], { mode: 'winner', roundSize: sortSession?.roundSize || ranking.length });
+  });
   $('#resultRankingBtn').addEventListener('click', () => {
     showTournamentSection('leaderboard');
     loadTournamentLeaderboard();
@@ -926,6 +1247,8 @@ $('#historyRankingBtn').addEventListener('click', () => {
 });
 $('#historyPlayBtn').addEventListener('click', openRoundSelect);
 
+initExcerptMaker();
+
 document.addEventListener('click', event => {
   const menuButton = event.target.closest('[data-menu]');
   if (menuButton) {
@@ -941,6 +1264,8 @@ document.addEventListener('click', event => {
   if (comment) { event.stopPropagation(); toggleComments(comment.dataset.comment, comment); return; }
   const submit = event.target.closest('[data-submit-comment]');
   if (submit) { event.stopPropagation(); submitComment(submit.dataset.submitComment, submit); return; }
+  const excerpt = event.target.closest('[data-excerpt]');
+  if (excerpt) { openExcerptMaker(postById(excerpt.dataset.excerpt)); return; }
   const save = event.target.closest('[data-save]');
   if (save) { toggleSave(save.dataset.save); return; }
   const share = event.target.closest('[data-share]');

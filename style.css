@@ -267,7 +267,6 @@
       font-weight: 400;
       letter-spacing: -0.025em;
       overflow-wrap: anywhere;
-      white-space: pre-wrap;
     }
 
     .post-actions { display: flex; justify-content: space-between; align-items: center; padding-top: 0; margin-top: -5px; }
@@ -649,3 +648,143 @@
     .history-date { color: var(--muted); font-size: 13px; min-width: 44px; }
     .history-round { color: var(--muted); font-size: 13px; min-width: 36px; }
     .history-winner { flex: 1; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Excerpt image maker */
+    .excerpt-modal { padding: 18px; }
+    .excerpt-modal-box {
+      width: min(1040px, 96vw);
+      max-width: 1040px;
+      max-height: 94vh;
+      overflow: auto;
+    }
+    .excerpt-modal-header {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: #fff;
+    }
+    .excerpt-maker {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(280px, 0.8fr);
+      gap: 24px;
+      padding: 22px;
+      align-items: start;
+    }
+    .excerpt-preview-wrap {
+      border-radius: 10px;
+      overflow: hidden;
+      background: #F4F2F3;
+      box-shadow: 0 0 0 1px var(--border);
+    }
+    #excerptCanvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      touch-action: none;
+    }
+    .excerpt-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .excerpt-field,
+    .excerpt-control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .excerpt-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .excerpt-field input,
+    .excerpt-field textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+    .excerpt-field textarea { min-height: 150px; }
+    .excerpt-field input:focus,
+    .excerpt-field textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .excerpt-option-row,
+    .excerpt-segmented {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .excerpt-swatch {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: var(--swatch);
+      box-shadow: 0 0 0 1px rgba(20,20,21,0.16);
+      cursor: pointer;
+    }
+    .excerpt-swatch-blue { background: linear-gradient(135deg, #D9E7FF, #244B91); }
+    .excerpt-swatch-violet { background: linear-gradient(135deg, #EEE6F7, #342743); }
+    .excerpt-swatch.active { box-shadow: 0 0 0 2px #141415; }
+    .excerpt-segmented button {
+      min-width: 66px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .excerpt-segmented button.active {
+      border-color: #141415;
+      background: #141415;
+      color: #fff;
+      font-weight: 600;
+    }
+    .excerpt-modal-footer {
+      position: sticky;
+      bottom: 0;
+      z-index: 3;
+      background: #fff;
+    }
+    .result-actions { flex-wrap: wrap; }
+
+    @media (max-width: 743px) {
+      .excerpt-modal {
+        padding: 0;
+        align-items: stretch;
+      }
+      .excerpt-modal-box {
+        width: 100%;
+        max-width: none;
+        max-height: 100dvh;
+        min-height: 100dvh;
+        border-radius: 0;
+      }
+      .excerpt-maker {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        padding: 16px;
+      }
+      .excerpt-preview-wrap { width: 100%; }
+      .excerpt-controls { width: 100%; }
+      .excerpt-modal-footer {
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      }
+      .excerpt-modal-footer button { flex: 1; padding-inline: 10px; }
+    }
