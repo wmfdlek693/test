@@ -25,8 +25,8 @@ let excerptState = {
   background: 'dark',
   textColor: '#f4f4f5',
   fontFamily: 'Pretendard, sans-serif',
-  fontSize: 40,
-  lineHeightScale: 2.35,
+  fontSize: 35,
+  lineHeightScale: 2,
   paragraphGap: 23,
   margin: 76,
   lineBreak: true,
@@ -646,8 +646,8 @@ function initExcerptMaker() {
             </div>
             <p class="excerpt-tip">💡 Tip: 버튼을 꾹 누르면 빠르게 조절돼요</p>
             <div class="excerpt-number-grid">
-              <div class="excerpt-number-box"><span>글자 크기</span><div><button type="button" data-excerpt-adjust="fontSize" data-direction="-1" aria-label="글자 크기 줄이기">−</button><input id="excerptFontSize" type="number" min="24" max="72" step="1" value="40"><em>px</em><button type="button" data-excerpt-adjust="fontSize" data-direction="1" aria-label="글자 크기 키우기">＋</button></div></div>
-              <div class="excerpt-number-box"><span>줄 간격</span><div><button type="button" data-excerpt-adjust="lineHeightScale" data-direction="-1" aria-label="줄 간격 줄이기">−</button><input id="excerptLineHeight" type="number" min="1.2" max="3.2" step="0.05" value="2.35"><em>x</em><button type="button" data-excerpt-adjust="lineHeightScale" data-direction="1" aria-label="줄 간격 늘리기">＋</button></div></div>
+              <div class="excerpt-number-box"><span>글자 크기</span><div><button type="button" data-excerpt-adjust="fontSize" data-direction="-1" aria-label="글자 크기 줄이기">−</button><input id="excerptFontSize" type="number" min="24" max="72" step="1" value="35"><em>px</em><button type="button" data-excerpt-adjust="fontSize" data-direction="1" aria-label="글자 크기 키우기">＋</button></div></div>
+              <div class="excerpt-number-box"><span>줄 간격</span><div><button type="button" data-excerpt-adjust="lineHeightScale" data-direction="-1" aria-label="줄 간격 줄이기">−</button><input id="excerptLineHeight" type="number" min="1.2" max="3.2" step="0.05" value="2.0"><em>x</em><button type="button" data-excerpt-adjust="lineHeightScale" data-direction="1" aria-label="줄 간격 늘리기">＋</button></div></div>
               <div class="excerpt-number-box"><span>문단 간격</span><div><button type="button" data-excerpt-adjust="paragraphGap" data-direction="-1" aria-label="문단 간격 줄이기">−</button><input id="excerptParagraphGap" type="number" min="0" max="90" step="1" value="23"><em>px</em><button type="button" data-excerpt-adjust="paragraphGap" data-direction="1" aria-label="문단 간격 늘리기">＋</button></div></div>
               <div class="excerpt-number-box"><span>여백</span><div><button type="button" data-excerpt-adjust="margin" data-direction="-1" aria-label="여백 줄이기">−</button><input id="excerptMargin" type="number" min="40" max="140" step="1" value="76"><em>px</em><button type="button" data-excerpt-adjust="margin" data-direction="1" aria-label="여백 늘리기">＋</button></div></div>
             </div>
@@ -735,8 +735,8 @@ function initExcerptMaker() {
     setExcerptActive('[data-excerpt-wrap]', button);
     drawExcerptCanvas();
   }));
-  $('#excerptFontSize').addEventListener('input', event => updateExcerptNumber('fontSize', event.target.value, 24, 72, 40));
-  $('#excerptLineHeight').addEventListener('input', event => updateExcerptNumber('lineHeightScale', event.target.value, 1.2, 3.2, 2.35));
+  $('#excerptFontSize').addEventListener('input', event => updateExcerptNumber('fontSize', event.target.value, 24, 72, 35));
+  $('#excerptLineHeight').addEventListener('input', event => updateExcerptNumber('lineHeightScale', event.target.value, 1.2, 3.2, 2));
   $('#excerptParagraphGap').addEventListener('input', event => updateExcerptNumber('paragraphGap', event.target.value, 0, 90, 23));
   $('#excerptMargin').addEventListener('input', event => updateExcerptNumber('margin', event.target.value, 40, 140, 76));
   $$('[data-excerpt-color]').forEach(button => button.addEventListener('click', () => {
@@ -798,8 +798,8 @@ function updateExcerptNumber(key, value, min, max, fallback) {
 }
 
 const excerptNumberControls = {
-  fontSize: { input: '#excerptFontSize', min: 24, max: 72, step: 1, fallback: 40 },
-  lineHeightScale: { input: '#excerptLineHeight', min: 1.2, max: 3.2, step: 0.05, fallback: 2.35 },
+  fontSize: { input: '#excerptFontSize', min: 24, max: 72, step: 1, fallback: 35 },
+  lineHeightScale: { input: '#excerptLineHeight', min: 1.2, max: 3.2, step: 0.05, fallback: 2 },
   paragraphGap: { input: '#excerptParagraphGap', min: 0, max: 90, step: 1, fallback: 23 },
   margin: { input: '#excerptMargin', min: 40, max: 140, step: 1, fallback: 76 }
 };
@@ -899,8 +899,8 @@ function openExcerptMaker(post, options = {}) {
   excerptState.background = 'dark';
   excerptState.textColor = '#f4f4f5';
   excerptState.fontFamily = 'Pretendard, sans-serif';
-  excerptState.fontSize = 40;
-  excerptState.lineHeightScale = 2.35;
+  excerptState.fontSize = 35;
+  excerptState.lineHeightScale = 2;
   excerptState.paragraphGap = 23;
   excerptState.margin = 76;
   excerptState.lineBreak = true;
@@ -922,8 +922,8 @@ function openExcerptMaker(post, options = {}) {
   $('#excerptWorkTitle').value = post.title || '';
   $('#excerptAuthor').value = post.author || '';
   $('#excerptText').value = post.quote || '';
-  $('#excerptFontSize').value = 40;
-  $('#excerptLineHeight').value = 2.35;
+  $('#excerptFontSize').value = 35;
+  $('#excerptLineHeight').value = '2.0';
   $('#excerptParagraphGap').value = 23;
   $('#excerptMargin').value = 76;
   $('#excerptImage').value = '';
