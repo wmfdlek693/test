@@ -47,6 +47,7 @@ const icons = {
   heart: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="${heartPath}" fill="currentcolor"/></svg>`,
   comment: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.832 17.535a1.877 1.877 0 0 1 1.742-.25c1.035.375 2.194.59 3.428.59 4.87 0 8.123-3.145 8.123-6.25s-3.253-6.25-8.123-6.25c-4.87 0-8.122 3.145-8.122 6.25 0 1.25.484 2.453 1.394 3.484.336.38.5.88.46 1.387a6.92 6.92 0 0 1-.44 1.93 9.811 9.811 0 0 0 1.538-.887v-.004Zm-3.999 1.586c.07-.105.137-.21.2-.316.39-.649.76-1.5.835-2.457-1.172-1.332-1.863-2.961-1.863-4.723 0-4.488 4.475-8.125 9.997-8.125C17.526 3.5 22 7.137 22 11.625c0 4.488-4.475 8.125-9.998 8.125-1.448 0-2.823-.25-4.065-.7-.465.34-1.222.805-2.12 1.196a9.564 9.564 0 0 1-1.957.629c-.031.008-.062.012-.094.02-.171.03-.34.058-.515.074-.008 0-.02.004-.027.004-.2.02-.399.03-.598.03a.625.625 0 0 1-.445-1.066 5.606 5.606 0 0 0 .629-.797l.011-.019h.012Z" fill="currentcolor"/></svg>',
   bookmark: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 4.875C4.5 3.84 5.34 3 6.375 3v16.242l5.082-3.629a.93.93 0 0 1 1.09 0l5.078 3.63V4.874H6.375V3h11.25c1.035 0 1.875.84 1.875 1.875v16.188a.938.938 0 0 1-1.48.762L12 17.526l-6.02 4.297a.938.938 0 0 1-1.48-.762z" fill="currentColor"/></svg>',
+  saveImage: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.25 4A2.25 2.25 0 0 0 3 6.25v11.5A2.25 2.25 0 0 0 5.25 20h13.5A2.25 2.25 0 0 0 21 17.75V6.25A2.25 2.25 0 0 0 18.75 4H5.25Zm0 1.75h13.5c.276 0 .5.224.5.5v8.02l-3.03-3.03a2.25 2.25 0 0 0-3.182 0l-1.44 1.44-.535-.535a2.25 2.25 0 0 0-3.182 0L4.75 15.276V6.25c0-.276.224-.5.5-.5Zm-.5 12v-.002l4.369-4.366a.5.5 0 0 1 .707 0l1.154 1.154a.875.875 0 0 0 1.237 0l2.058-2.059a.5.5 0 0 1 .707 0l4.268 4.268v1.005a.5.5 0 0 1-.5.5H5.25a.5.5 0 0 1-.5-.5ZM8.25 8.5a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Z" fill="currentColor"/></svg>',
   share: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.664 2.275a.934.934 0 0 0-1.324 0l-5.004 5A.937.937 0 0 0 7.66 8.6l3.399-3.398v9.614c0 .519.418.937.937.937.52 0 .938-.418.938-.938V5.202L16.332 8.6a.937.937 0 0 0 1.324-1.324l-4.992-5ZM5.125 15.44a.935.935 0 0 0-.938-.938.935.935 0 0 0-.937.938v3.124a3.438 3.438 0 0 0 3.438 3.438h10.625a3.438 3.438 0 0 0 3.437-3.438V15.44a.935.935 0 0 0-.938-.938.935.935 0 0 0-.937.938v3.124c0 .864-.7 1.563-1.563 1.563H6.688c-.863 0-1.562-.7-1.562-1.563V15.44Z" fill="currentColor"/></svg>',
   more: '<svg focusable="false" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M20.125 12a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm-6.25 0a1.875 1.875 0 1 1-3.751 0 1.875 1.875 0 0 1 3.751 0ZM5.75 13.875a1.875 1.875 0 1 1 0-3.75 1.875 1.875 0 0 1 0 3.75Z" fill="currentcolor"></path></svg>'
 };
@@ -293,7 +294,7 @@ function renderCard(post, context) {
   const open = openCommentIds.has(cardKey);
   const excerptAction = context === 'feed' && currentView === 'top';
   const bookmarkButton = excerptAction
-    ? `<button class="post-icon-btn" type="button" data-excerpt="${esc(post.id)}" aria-label="발췌짤 만들기" title="발췌짤 만들기">${icons.bookmark}</button>`
+    ? `<button class="post-icon-btn" type="button" data-excerpt="${esc(post.id)}" aria-label="마음에 드는 포타 명장면 짤 만들기" title="마음에 드는 포타 명장면 짤 만들기">${icons.saveImage}</button>`
     : `<button class="post-icon-btn ${saved ? 'saved' : ''}" type="button" data-save="${esc(post.id)}" aria-label="저장" aria-pressed="${saved}">${icons.bookmark}</button>`;
   const dropdown = post.isOwner
     ? `<button type="button" data-edit="${esc(post.id)}">수정</button><button type="button" data-delete="${esc(post.id)}">삭제</button>`
@@ -576,11 +577,7 @@ function initExcerptMaker() {
         <div class="modal-header excerpt-modal-header">
           <div class="excerpt-head-title">
             <button class="excerpt-back" type="button" data-close="excerptModal" aria-label="닫기">‹</button>
-            <h3 id="excerptModalTitle">발췌짤 만들기</h3>
-          </div>
-          <div class="excerpt-head-actions">
-            <button class="excerpt-head-button primary" id="excerptDownloadBtn" type="button">이미지 저장</button>
-            <button class="excerpt-head-button" id="excerptShareBtn" type="button">공유</button>
+            <h3 id="excerptModalTitle">마음에 드는 포타 명장면 짤 만들기</h3>
           </div>
         </div>
         <div class="excerpt-maker">
@@ -606,8 +603,8 @@ function initExcerptMaker() {
               <span class="excerpt-label">글꼴</span>
               <div class="excerpt-segmented" aria-label="글꼴 선택">
                 <button class="active" type="button" data-excerpt-font="Pretendard, sans-serif">기본</button>
-                <button type="button" data-excerpt-font="'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">고딕</button>
-                <button type="button" data-excerpt-font="'AppleMyungjo', 'Nanum Myeongjo', 'Batang', serif">명조</button>
+                <button type="button" data-excerpt-font="NJNanumGothic, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">고딕</button>
+                <button type="button" data-excerpt-font="NJNanumMyeongjo, 'AppleMyungjo', 'Nanum Myeongjo', 'Batang', serif">명조</button>
               </div>
             </div>
             <div class="excerpt-control-group">
@@ -637,6 +634,10 @@ function initExcerptMaker() {
               <label class="excerpt-file-button">배경 이미지<input id="excerptImage" type="file" accept="image/*"></label>
               <button class="excerpt-reset-button" id="excerptImageReset" type="button">위치 초기화</button>
             </div>
+            <div class="excerpt-action-buttons">
+              <button class="excerpt-action-button primary" id="excerptDownloadBtn" type="button">이미지 저장</button>
+              <button class="excerpt-action-button" id="excerptShareBtn" type="button">공유</button>
+            </div>
           </div>
         </div>
       </div>
@@ -649,6 +650,8 @@ function initExcerptMaker() {
   $$('[data-excerpt-font]').forEach(button => button.addEventListener('click', () => {
     excerptState.fontFamily = button.dataset.excerptFont;
     setExcerptActive('[data-excerpt-font]', button);
+    document.fonts?.load(`24px ${excerptState.fontFamily}`).catch(() => {});
+    document.fonts?.ready.then(drawExcerptCanvas);
     drawExcerptCanvas();
   }));
   $$('[data-excerpt-size]').forEach(button => button.addEventListener('click', () => {
@@ -721,7 +724,7 @@ function openExcerptMaker(post, options = {}) {
   setExcerptActive('[data-excerpt-font]', $('[data-excerpt-font="Pretendard, sans-serif"]'));
   setExcerptActive('[data-excerpt-size]', $('[data-excerpt-size="40"]'));
   setExcerptActive('[data-excerpt-color]', $('[data-excerpt-color="#f4f4f5"]'));
-  $('#excerptModalTitle').textContent = excerptState.mode === 'winner' ? '우승짤 만들기' : '발췌짤 만들기';
+  $('#excerptModalTitle').textContent = '마음에 드는 포타 명장면 짤 만들기';
   openModal('excerptModal');
   requestAnimationFrame(drawExcerptCanvas);
   document.fonts?.ready.then(drawExcerptCanvas);
@@ -896,7 +899,7 @@ function wrapExcerptText(ctx, value, maxWidth, preserveLineBreaks = true) {
   const normalized = String(value || '').replace(/\r\n?/g, '\n').trim();
   const source = preserveLineBreaks ? normalized : normalized.replace(/\s+/g, ' ');
   const lines = [];
-  const paragraphs = preserveLineBreaks ? source.split(/\n+/) : [source];
+  const paragraphs = preserveLineBreaks ? source.split('\n') : [source];
   paragraphs.forEach(paragraph => {
     if (!paragraph) {
       lines.push('');
@@ -958,12 +961,12 @@ function drawExcerptCanvas() {
 
   if (excerptState.mode === 'winner') {
     ctx.fillStyle = isLightText ? 'rgba(255,255,255,0.14)' : 'rgba(32,33,36,0.10)';
-    roundRect(ctx, margin, 58, 230, 58, 29);
+    roundRect(ctx, margin, 58, 380, 58, 29);
     ctx.fill();
     ctx.fillStyle = textColor;
     ctx.font = `600 24px ${excerptState.fontFamily}`;
     ctx.textBaseline = 'middle';
-    const roundLabel = excerptState.roundSize ? `${excerptState.roundSize}강 소트 우승` : '소트 우승';
+    const roundLabel = '냐쭙 포타 명장면 우승👑';
     ctx.fillText(roundLabel, margin + 26, 87);
   }
 
@@ -1034,9 +1037,12 @@ function excerptFileName() {
 }
 
 async function downloadExcerptImage() {
+  const button = $('#excerptDownloadBtn');
+  button.disabled = true;
   const blob = await excerptCanvasBlob();
   if (!blob) {
     showToast('이미지를 만들지 못했어요.');
+    button.disabled = false;
     return;
   }
   const url = URL.createObjectURL(blob);
@@ -1048,23 +1054,31 @@ async function downloadExcerptImage() {
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   showToast('이미지를 저장했어요.');
+  button.disabled = false;
 }
 
 async function shareExcerptImage() {
+  const button = $('#excerptShareBtn');
+  button.disabled = true;
   const blob = await excerptCanvasBlob();
   if (!blob) {
     showToast('이미지를 만들지 못했어요.');
+    button.disabled = false;
     return;
   }
   const file = new File([blob], excerptFileName(), { type: 'image/png' });
   try {
     if (navigator.canShare?.({ files: [file] })) {
       await navigator.share({ files: [file], title: $('#excerptWorkTitle').value.trim() || '냐쭙짤' });
+      showToast('공유창을 열었어요.');
     } else {
+      showToast('이 브라우저는 파일 공유를 지원하지 않아 이미지 저장으로 대신할게요.');
       await downloadExcerptImage();
     }
   } catch (error) {
     if (error.name !== 'AbortError') showToast('공유하지 못했어요.');
+  } finally {
+    button.disabled = false;
   }
 }
 
@@ -1244,7 +1258,7 @@ async function finishTournament(winner) {
 
 function showTournamentResult(ranking) {
   showTournamentSection('result');
-  $('#tournamentResult').innerHTML = `<div class="tournament-result"><div class="winner-label">🏆 우승</div>${rankCard(ranking[0], 0)}<div class="result-ranking">${ranking.slice(1).map((post, index) => `<div class="result-ranking-item"><div class="result-rank">${index === 0 ? '🥈' : index === 1 ? '🥉' : index + 2}</div><div class="result-ranking-info"><div class="result-ranking-title">${esc(post.title)} <span class="result-ranking-author">· ${esc(post.author)}</span></div><div class="post-body result-quote">${esc(post.quote)}</div></div></div>`).join('')}</div><div class="result-actions"><button class="tournament-btn" id="resultExcerptBtn" type="button">우승짤 만들기</button><button class="tournament-btn tournament-btn-ghost" id="resultRankingBtn" type="button">랭킹 보기</button><button class="tournament-btn tournament-btn-ghost" id="resultAgainBtn" type="button">다시하기</button></div></div>`;
+  $('#tournamentResult').innerHTML = `<div class="tournament-result"><div class="winner-label">🏆 우승</div>${rankCard(ranking[0], 0)}<div class="result-ranking">${ranking.slice(1).map((post, index) => `<div class="result-ranking-item"><div class="result-rank">${index === 0 ? '🥈' : index === 1 ? '🥉' : index + 2}</div><div class="result-ranking-info"><div class="result-ranking-title">${esc(post.title)} <span class="result-ranking-author">· ${esc(post.author)}</span></div><div class="post-body result-quote">${esc(post.quote)}</div></div></div>`).join('')}</div><div class="result-actions"><button class="tournament-btn" id="resultExcerptBtn" type="button">냐쭙 포타 명장면 우승👑</button><button class="tournament-btn tournament-btn-ghost" id="resultRankingBtn" type="button">랭킹 보기</button><button class="tournament-btn tournament-btn-ghost" id="resultAgainBtn" type="button">다시하기</button></div></div>`;
   $('#resultExcerptBtn').addEventListener('click', () => {
     openExcerptMaker(ranking[0], { mode: 'winner', roundSize: sortSession?.roundSize || ranking.length });
   });
