@@ -724,7 +724,9 @@ function openExcerptMaker(post, options = {}) {
   setExcerptActive('[data-excerpt-font]', $('[data-excerpt-font="Pretendard, sans-serif"]'));
   setExcerptActive('[data-excerpt-size]', $('[data-excerpt-size="40"]'));
   setExcerptActive('[data-excerpt-color]', $('[data-excerpt-color="#f4f4f5"]'));
-  $('#excerptModalTitle').textContent = '마음에 드는 포타 명장면 짤 만들기';
+  $('#excerptModalTitle').textContent = excerptState.mode === 'winner'
+    ? '냐쭙 포타 명장면 우승짤 만들기👑'
+    : '마음에 드는 포타 명장면 짤 만들기';
   openModal('excerptModal');
   requestAnimationFrame(drawExcerptCanvas);
   document.fonts?.ready.then(drawExcerptCanvas);
@@ -960,14 +962,16 @@ function drawExcerptCanvas() {
   }
 
   if (excerptState.mode === 'winner') {
+    const roundLabel = '내가 뽑은 냐쭙 포타 명장면 우승';
+    ctx.font = `600 24px ${excerptState.fontFamily}`;
+    const labelPaddingX = 22;
+    const labelWidth = Math.ceil(ctx.measureText(roundLabel).width) + labelPaddingX * 2;
     ctx.fillStyle = isLightText ? 'rgba(255,255,255,0.14)' : 'rgba(32,33,36,0.10)';
-    roundRect(ctx, margin, 58, 380, 58, 29);
+    roundRect(ctx, margin, 58, labelWidth, 58, 29);
     ctx.fill();
     ctx.fillStyle = textColor;
-    ctx.font = `600 24px ${excerptState.fontFamily}`;
     ctx.textBaseline = 'middle';
-    const roundLabel = '냐쭙 포타 명장면 우승👑';
-    ctx.fillText(roundLabel, margin + 26, 87);
+    ctx.fillText(roundLabel, margin + labelPaddingX, 87);
   }
 
   let quote = $('#excerptText').value.trim() || '발췌 텍스트를 입력해 주세요.';
@@ -1258,7 +1262,7 @@ async function finishTournament(winner) {
 
 function showTournamentResult(ranking) {
   showTournamentSection('result');
-  $('#tournamentResult').innerHTML = `<div class="tournament-result"><div class="winner-label">🏆 우승</div>${rankCard(ranking[0], 0)}<div class="result-ranking">${ranking.slice(1).map((post, index) => `<div class="result-ranking-item"><div class="result-rank">${index === 0 ? '🥈' : index === 1 ? '🥉' : index + 2}</div><div class="result-ranking-info"><div class="result-ranking-title">${esc(post.title)} <span class="result-ranking-author">· ${esc(post.author)}</span></div><div class="post-body result-quote">${esc(post.quote)}</div></div></div>`).join('')}</div><div class="result-actions"><button class="tournament-btn" id="resultExcerptBtn" type="button">냐쭙 포타 명장면 우승👑</button><button class="tournament-btn tournament-btn-ghost" id="resultRankingBtn" type="button">랭킹 보기</button><button class="tournament-btn tournament-btn-ghost" id="resultAgainBtn" type="button">다시하기</button></div></div>`;
+  $('#tournamentResult').innerHTML = `<div class="tournament-result"><div class="winner-label">🏆 우승</div>${rankCard(ranking[0], 0)}<div class="result-ranking">${ranking.slice(1).map((post, index) => `<div class="result-ranking-item"><div class="result-rank">${index === 0 ? '🥈' : index === 1 ? '🥉' : index + 2}</div><div class="result-ranking-info"><div class="result-ranking-title">${esc(post.title)} <span class="result-ranking-author">· ${esc(post.author)}</span></div><div class="post-body result-quote">${esc(post.quote)}</div></div></div>`).join('')}</div><div class="result-actions"><button class="tournament-btn" id="resultExcerptBtn" type="button">냐쭙 포타 명장면 우승짤 만들기👑</button><button class="tournament-btn tournament-btn-ghost" id="resultRankingBtn" type="button">랭킹 보기</button><button class="tournament-btn tournament-btn-ghost" id="resultAgainBtn" type="button">다시하기</button></div></div>`;
   $('#resultExcerptBtn').addEventListener('click', () => {
     openExcerptMaker(ranking[0], { mode: 'winner', roundSize: sortSession?.roundSize || ranking.length });
   });

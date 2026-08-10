@@ -283,6 +283,7 @@
       font-weight: 400;
       letter-spacing: -0.025em;
       overflow-wrap: anywhere;
+      white-space: pre-wrap;
     }
 
     .post-actions { display: flex; justify-content: space-between; align-items: center; padding-top: 0; margin-top: -5px; }
