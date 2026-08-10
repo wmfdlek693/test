@@ -21,11 +21,18 @@ let excerptState = {
   post: null,
   mode: 'post',
   roundSize: null,
+  ratio: '1:1',
   background: 'dark',
   textColor: '#f4f4f5',
   fontFamily: 'Pretendard, sans-serif',
   fontSize: 40,
+  lineHeightScale: 2.35,
+  paragraphGap: 23,
+  margin: 76,
   lineBreak: true,
+  indent: false,
+  smartQuotes: true,
+  wrapMode: 'char',
   image: null,
   imageScale: 1,
   imageX: 0,
@@ -582,39 +589,50 @@ function initExcerptMaker() {
         </div>
         <div class="excerpt-maker">
           <div class="excerpt-preview-wrap">
-            <canvas id="excerptCanvas" width="1080" height="1080" aria-label="배경 이미지 위치와 크기를 직접 조절하는 발췌 미리보기"></canvas>
+            <canvas id="excerptCanvas" width="1080" height="1080" aria-label="배경 이미지 위치와 크기를 직접 조절하는 명장면 짤 미리보기"></canvas>
             <p class="excerpt-image-help">이미지를 끌어 위치를 조절하고, 두 손가락으로 확대·축소하세요.</p>
           </div>
           <div class="excerpt-controls">
+            <section class="excerpt-section">
+              <h4 class="excerpt-section-title">내용 입력</h4>
+              <div class="excerpt-chip-row" aria-label="입력 옵션">
+                <button class="excerpt-chip" id="excerptIndentToggle" type="button" aria-pressed="false"><span aria-hidden="true">≡</span> 들여쓰기 OFF</button>
+                <button class="excerpt-chip active" id="excerptSmartQuoteToggle" type="button" aria-pressed="true"><span aria-hidden="true">“”</span> 둥근 따옴표 자동 변환</button>
+                <button class="excerpt-chip accent" id="excerptLargeInputToggle" type="button" aria-pressed="false"><span aria-hidden="true">↗</span> 크게 입력</button>
+                <button class="excerpt-chip danger" id="excerptClearInput" type="button" aria-label="입력 내용 지우기" title="입력 내용 지우기">&#128465;&#xfe0e;</button>
+              </div>
+              <label class="excerpt-field excerpt-body-field"><textarea id="excerptText" rows="7" maxlength="1500" aria-label="명장면 원문"></textarea></label>
+              <div class="excerpt-inline-fields">
+                <label class="excerpt-field"><span class="excerpt-label">제작자</span><input id="excerptAuthor" maxlength="80" placeholder="제작자 (선택)"></label>
+                <label class="excerpt-field"><span class="excerpt-label">캐릭터/제목</span><input id="excerptWorkTitle" maxlength="120" placeholder="캐릭터/제목 (선택)"></label>
+              </div>
+            </section>
+            <section class="excerpt-section">
+              <h4 class="excerpt-section-title">캔버스 비율</h4>
+              <div class="excerpt-ratio-row" aria-label="캔버스 비율">
+                <button class="active" type="button" data-excerpt-ratio="1:1" aria-pressed="true"><span class="ratio-icon square" aria-hidden="true"></span><strong>1:1</strong></button>
+                <button type="button" data-excerpt-ratio="4:5" aria-pressed="false"><span class="ratio-icon portrait" aria-hidden="true"></span><strong>4:5</strong></button>
+                <button type="button" data-excerpt-ratio="16:9" aria-pressed="false"><span class="ratio-icon landscape" aria-hidden="true"></span><strong>16:9</strong></button>
+              </div>
+            </section>
+            <section class="excerpt-section">
+              <h4 class="excerpt-section-title">텍스트 스타일</h4>
             <div class="excerpt-control-group">
-              <span class="excerpt-label">배경</span>
-              <div class="excerpt-option-row excerpt-swatches" aria-label="배경 선택">
-                <button class="excerpt-swatch active" type="button" data-excerpt-bg="dark">검정</button>
-                <button class="excerpt-swatch" type="button" data-excerpt-bg="light">하양</button>
-                <button class="excerpt-swatch" type="button" data-excerpt-bg="purple-blue">보라·파랑</button>
-                <button class="excerpt-swatch" type="button" data-excerpt-bg="dark-purple">어두운 보라</button>
-                <button class="excerpt-swatch" type="button" data-excerpt-bg="sky-blue">연한 하늘</button>
+              <div class="excerpt-segmented excerpt-font-grid" aria-label="글꼴 선택">
+                <button type="button" data-excerpt-font="'Noto Serif KR', NJNanumMyeongjo, 'AppleMyungjo', 'Batang', serif">Noto Serif</button>
+                <button type="button" data-excerpt-font="'KoPub Batang', 'Batang', NJNanumMyeongjo, serif">KoPub 바탕</button>
+                <button type="button" data-excerpt-font="NJNanumMyeongjo, 'AppleMyungjo', 'Nanum Myeongjo', 'Batang', serif">나눔명조</button>
+                <button class="active" type="button" data-excerpt-font="Pretendard, sans-serif">Pretendard</button>
+                <button type="button" data-excerpt-font="'Noto Sans KR', Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">Noto Sans</button>
+                <button type="button" data-excerpt-font="NJNanumGothic, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">나눔고딕</button>
               </div>
             </div>
-            <label class="excerpt-field"><span class="excerpt-label">제목</span><input id="excerptWorkTitle" maxlength="120"></label>
-            <label class="excerpt-field"><span class="excerpt-label">작가</span><input id="excerptAuthor" maxlength="80"></label>
-            <label class="excerpt-field"><span class="excerpt-label">텍스트</span><textarea id="excerptText" rows="8" maxlength="1500"></textarea></label>
-            <div class="excerpt-control-group">
-              <span class="excerpt-label">글꼴</span>
-              <div class="excerpt-segmented" aria-label="글꼴 선택">
-                <button class="active" type="button" data-excerpt-font="Pretendard, sans-serif">기본</button>
-                <button type="button" data-excerpt-font="NJNanumGothic, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">고딕</button>
-                <button type="button" data-excerpt-font="NJNanumMyeongjo, 'AppleMyungjo', 'Nanum Myeongjo', 'Batang', serif">명조</button>
-              </div>
-            </div>
-            <div class="excerpt-control-group">
-              <span class="excerpt-label">글꼴크기</span>
-              <div class="excerpt-segmented" aria-label="글자 크기 선택">
-                <button type="button" data-excerpt-size="32">더 작은 글씨</button>
-                <button type="button" data-excerpt-size="36">작은 글씨</button>
-                <button class="active" type="button" data-excerpt-size="40">중간 글씨</button>
-                <button type="button" data-excerpt-size="46">큰 글씨</button>
-              </div>
+            <p class="excerpt-tip">💡 Tip: 버튼을 꾹 누르면 빠르게 조절돼요</p>
+            <div class="excerpt-number-grid">
+              <div class="excerpt-number-box"><span>글자 크기</span><div><button type="button" data-excerpt-adjust="fontSize" data-direction="-1" aria-label="글자 크기 줄이기">−</button><input id="excerptFontSize" type="number" min="24" max="72" step="1" value="40"><em>px</em><button type="button" data-excerpt-adjust="fontSize" data-direction="1" aria-label="글자 크기 키우기">＋</button></div></div>
+              <div class="excerpt-number-box"><span>줄 간격</span><div><button type="button" data-excerpt-adjust="lineHeightScale" data-direction="-1" aria-label="줄 간격 줄이기">−</button><input id="excerptLineHeight" type="number" min="1.2" max="3.2" step="0.05" value="2.35"><em>x</em><button type="button" data-excerpt-adjust="lineHeightScale" data-direction="1" aria-label="줄 간격 늘리기">＋</button></div></div>
+              <div class="excerpt-number-box"><span>문단 간격</span><div><button type="button" data-excerpt-adjust="paragraphGap" data-direction="-1" aria-label="문단 간격 줄이기">−</button><input id="excerptParagraphGap" type="number" min="0" max="90" step="1" value="23"><em>px</em><button type="button" data-excerpt-adjust="paragraphGap" data-direction="1" aria-label="문단 간격 늘리기">＋</button></div></div>
+              <div class="excerpt-number-box"><span>여백</span><div><button type="button" data-excerpt-adjust="margin" data-direction="-1" aria-label="여백 줄이기">−</button><input id="excerptMargin" type="number" min="40" max="140" step="1" value="76"><em>px</em><button type="button" data-excerpt-adjust="margin" data-direction="1" aria-label="여백 늘리기">＋</button></div></div>
             </div>
             <div class="excerpt-control-group">
               <span class="excerpt-label">글자 색상</span>
@@ -623,21 +641,31 @@ function initExcerptMaker() {
                 <button class="excerpt-color-option" type="button" data-excerpt-color="#202124">T 검정색</button>
               </div>
             </div>
-            <div class="excerpt-switch-row">
-              <span class="excerpt-label">줄 바꿈</span>
-              <label class="excerpt-switch">
-                <input id="excerptLineBreak" type="checkbox" checked>
-                <span aria-hidden="true"></span>
-              </label>
-            </div>
-            <div class="excerpt-image-controls">
-              <label class="excerpt-file-button">배경 이미지<input id="excerptImage" type="file" accept="image/*"></label>
+            </section>
+            <section class="excerpt-section">
+              <h4 class="excerpt-section-title">배경 및 이미지</h4>
+              <div class="excerpt-control-group">
+                <span class="excerpt-label">배경 색상</span>
+                <div class="excerpt-option-row excerpt-swatches" aria-label="배경 선택">
+                  <button class="excerpt-swatch active" type="button" data-excerpt-bg="dark">검정</button>
+                  <button class="excerpt-swatch" type="button" data-excerpt-bg="light">하양</button>
+                  <button class="excerpt-swatch" type="button" data-excerpt-bg="purple-blue">보라·파랑</button>
+                  <button class="excerpt-swatch" type="button" data-excerpt-bg="dark-purple">어두운 보라</button>
+                  <button class="excerpt-swatch" type="button" data-excerpt-bg="sky-blue">연한 하늘</button>
+                </div>
+              </div>
+              <div class="excerpt-image-controls">
+              <label class="excerpt-file-button">배경 이미지 업로드<input id="excerptImage" type="file" accept="image/*"></label>
               <button class="excerpt-reset-button" id="excerptImageReset" type="button">위치 초기화</button>
-            </div>
-            <div class="excerpt-action-buttons">
-              <button class="excerpt-action-button primary" id="excerptDownloadBtn" type="button">이미지 저장</button>
-              <button class="excerpt-action-button" id="excerptShareBtn" type="button">공유</button>
-            </div>
+              </div>
+            </section>
+            <section class="excerpt-section excerpt-section-save">
+              <h4 class="excerpt-section-title">저장</h4>
+              <div class="excerpt-action-buttons">
+                <button class="excerpt-action-button primary" id="excerptDownloadBtn" type="button">이미지 저장</button>
+                <button class="excerpt-action-button" id="excerptShareBtn" type="button">공유</button>
+              </div>
+            </section>
           </div>
         </div>
       </div>
@@ -647,6 +675,7 @@ function initExcerptMaker() {
     $(selector).addEventListener('input', drawExcerptCanvas);
   });
   $$('[data-excerpt-bg]').forEach(button => button.addEventListener('click', () => setExcerptBackground(button.dataset.excerptBg)));
+  $$('[data-excerpt-ratio]').forEach(button => button.addEventListener('click', () => setExcerptRatio(button.dataset.excerptRatio)));
   $$('[data-excerpt-font]').forEach(button => button.addEventListener('click', () => {
     excerptState.fontFamily = button.dataset.excerptFont;
     setExcerptActive('[data-excerpt-font]', button);
@@ -654,20 +683,20 @@ function initExcerptMaker() {
     document.fonts?.ready.then(drawExcerptCanvas);
     drawExcerptCanvas();
   }));
-  $$('[data-excerpt-size]').forEach(button => button.addEventListener('click', () => {
-    excerptState.fontSize = Number(button.dataset.excerptSize);
-    setExcerptActive('[data-excerpt-size]', button);
-    drawExcerptCanvas();
-  }));
+  $('#excerptFontSize').addEventListener('input', event => updateExcerptNumber('fontSize', event.target.value, 24, 72, 40));
+  $('#excerptLineHeight').addEventListener('input', event => updateExcerptNumber('lineHeightScale', event.target.value, 1.2, 3.2, 2.35));
+  $('#excerptParagraphGap').addEventListener('input', event => updateExcerptNumber('paragraphGap', event.target.value, 0, 90, 23));
+  $('#excerptMargin').addEventListener('input', event => updateExcerptNumber('margin', event.target.value, 40, 140, 76));
   $$('[data-excerpt-color]').forEach(button => button.addEventListener('click', () => {
     excerptState.textColor = button.dataset.excerptColor;
     setExcerptActive('[data-excerpt-color]', button);
     drawExcerptCanvas();
   }));
-  $('#excerptLineBreak').addEventListener('change', event => {
-    excerptState.lineBreak = event.target.checked;
-    drawExcerptCanvas();
-  });
+  $$('[data-excerpt-adjust]').forEach(setupExcerptAdjustButton);
+  $('#excerptIndentToggle').addEventListener('click', toggleExcerptIndent);
+  $('#excerptSmartQuoteToggle').addEventListener('click', toggleExcerptSmartQuotes);
+  $('#excerptLargeInputToggle').addEventListener('click', toggleExcerptLargeInput);
+  $('#excerptClearInput').addEventListener('click', clearExcerptInputs);
   $('#excerptImage').addEventListener('change', event => loadExcerptImage(event.target.files?.[0]));
   $('#excerptImageReset').addEventListener('click', resetExcerptImageTransform);
   $('#excerptCanvas').addEventListener('pointerdown', handleExcerptPointerDown);
@@ -681,7 +710,112 @@ function initExcerptMaker() {
 }
 
 function setExcerptActive(selector, activeButton) {
-  $$(selector).forEach(button => button.classList.toggle('active', button === activeButton));
+  $$(selector).forEach(button => {
+    const active = button === activeButton;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+}
+
+function setExcerptRatio(ratio) {
+  const canvas = $('#excerptCanvas');
+  const sizes = {
+    '1:1': [1080, 1080],
+    '4:5': [1080, 1350],
+    '16:9': [1920, 1080]
+  };
+  const [width, height] = sizes[ratio] || sizes['1:1'];
+  excerptState.ratio = ratio in sizes ? ratio : '1:1';
+  canvas.width = width;
+  canvas.height = height;
+  canvas.style.aspectRatio = `${width} / ${height}`;
+  setExcerptActive('[data-excerpt-ratio]', document.querySelector(`[data-excerpt-ratio="${excerptState.ratio}"]`));
+  resetExcerptImageTransform();
+}
+
+function updateExcerptNumber(key, value, min, max, fallback) {
+  const parsed = Number(value);
+  excerptState[key] = Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
+  drawExcerptCanvas();
+}
+
+const excerptNumberControls = {
+  fontSize: { input: '#excerptFontSize', min: 24, max: 72, step: 1, fallback: 40 },
+  lineHeightScale: { input: '#excerptLineHeight', min: 1.2, max: 3.2, step: 0.05, fallback: 2.35 },
+  paragraphGap: { input: '#excerptParagraphGap', min: 0, max: 90, step: 1, fallback: 23 },
+  margin: { input: '#excerptMargin', min: 40, max: 140, step: 1, fallback: 76 }
+};
+
+function adjustExcerptNumber(key, direction) {
+  const control = excerptNumberControls[key];
+  if (!control) return;
+  const input = $(control.input);
+  const current = Number(input.value);
+  const next = Math.min(control.max, Math.max(control.min, (Number.isFinite(current) ? current : control.fallback) + control.step * direction));
+  const decimals = control.step < 1 ? 2 : 0;
+  input.value = Number(next.toFixed(decimals));
+  updateExcerptNumber(key, input.value, control.min, control.max, control.fallback);
+}
+
+function setupExcerptAdjustButton(button) {
+  let holdTimer = null;
+  let repeatTimer = null;
+  let held = false;
+  const run = () => adjustExcerptNumber(button.dataset.excerptAdjust, Number(button.dataset.direction) || 1);
+  const stop = () => {
+    clearTimeout(holdTimer);
+    clearInterval(repeatTimer);
+    holdTimer = null;
+    repeatTimer = null;
+  };
+  button.addEventListener('pointerdown', event => {
+    event.preventDefault();
+    held = false;
+    holdTimer = setTimeout(() => {
+      held = true;
+      run();
+      repeatTimer = setInterval(run, 90);
+    }, 380);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => button.addEventListener(type, stop));
+  button.addEventListener('click', () => {
+    if (!held) run();
+    held = false;
+  });
+}
+
+function clearExcerptInputs() {
+  $('#excerptText').value = '';
+  $('#excerptAuthor').value = '';
+  $('#excerptWorkTitle').value = '';
+  drawExcerptCanvas();
+}
+
+function toggleExcerptIndent() {
+  excerptState.indent = !excerptState.indent;
+  const button = $('#excerptIndentToggle');
+  button.classList.toggle('active', excerptState.indent);
+  button.setAttribute('aria-pressed', excerptState.indent ? 'true' : 'false');
+  button.innerHTML = `<span aria-hidden="true">≡</span> 들여쓰기 ${excerptState.indent ? 'ON' : 'OFF'}`;
+  drawExcerptCanvas();
+}
+
+function toggleExcerptSmartQuotes() {
+  excerptState.smartQuotes = !excerptState.smartQuotes;
+  const button = $('#excerptSmartQuoteToggle');
+  button.classList.toggle('active', excerptState.smartQuotes);
+  button.setAttribute('aria-pressed', excerptState.smartQuotes ? 'true' : 'false');
+  drawExcerptCanvas();
+}
+
+function toggleExcerptLargeInput() {
+  const textarea = $('#excerptText');
+  const button = $('#excerptLargeInputToggle');
+  const large = !textarea.classList.contains('is-large');
+  textarea.classList.toggle('is-large', large);
+  textarea.rows = large ? 13 : 7;
+  button.classList.toggle('active', large);
+  button.setAttribute('aria-pressed', large ? 'true' : 'false');
 }
 
 function setExcerptBackground(background) {
@@ -703,11 +837,18 @@ function openExcerptMaker(post, options = {}) {
   excerptState.post = post;
   excerptState.mode = options.mode === 'winner' ? 'winner' : 'post';
   excerptState.roundSize = Number(options.roundSize) || null;
+  excerptState.ratio = '1:1';
   excerptState.background = 'dark';
   excerptState.textColor = '#f4f4f5';
   excerptState.fontFamily = 'Pretendard, sans-serif';
   excerptState.fontSize = 40;
+  excerptState.lineHeightScale = 2.35;
+  excerptState.paragraphGap = 23;
+  excerptState.margin = 76;
   excerptState.lineBreak = true;
+  excerptState.indent = false;
+  excerptState.smartQuotes = true;
+  excerptState.wrapMode = 'char';
   excerptState.image = null;
   excerptState.imageScale = 1;
   excerptState.imageX = 0;
@@ -718,11 +859,23 @@ function openExcerptMaker(post, options = {}) {
   $('#excerptWorkTitle').value = post.title || '';
   $('#excerptAuthor').value = post.author || '';
   $('#excerptText').value = post.quote || '';
-  $('#excerptLineBreak').checked = true;
+  $('#excerptFontSize').value = 40;
+  $('#excerptLineHeight').value = 2.35;
+  $('#excerptParagraphGap').value = 23;
+  $('#excerptMargin').value = 76;
   $('#excerptImage').value = '';
+  $('#excerptText').classList.remove('is-large');
+  $('#excerptText').rows = 7;
+  $('#excerptIndentToggle').innerHTML = '<span aria-hidden="true">≡</span> 들여쓰기 OFF';
+  $('#excerptIndentToggle').classList.remove('active');
+  $('#excerptIndentToggle').setAttribute('aria-pressed', 'false');
+  $('#excerptSmartQuoteToggle').classList.add('active');
+  $('#excerptSmartQuoteToggle').setAttribute('aria-pressed', 'true');
+  $('#excerptLargeInputToggle').classList.remove('active');
+  $('#excerptLargeInputToggle').setAttribute('aria-pressed', 'false');
+  setExcerptRatio('1:1');
   setExcerptActive('[data-excerpt-bg]', $('[data-excerpt-bg="dark"]'));
   setExcerptActive('[data-excerpt-font]', $('[data-excerpt-font="Pretendard, sans-serif"]'));
-  setExcerptActive('[data-excerpt-size]', $('[data-excerpt-size="40"]'));
   setExcerptActive('[data-excerpt-color]', $('[data-excerpt-color="#f4f4f5"]'));
   $('#excerptModalTitle').textContent = excerptState.mode === 'winner'
     ? '냐쭙 포타 명장면 우승짤 만들기👑'
@@ -905,6 +1058,31 @@ function wrapExcerptText(ctx, value, maxWidth, preserveLineBreaks = true) {
   paragraphs.forEach(paragraph => {
     if (!paragraph) {
       lines.push('');
+    } else if (excerptState.wrapMode === 'word') {
+      let line = '';
+      const tokens = paragraph.match(/\S+\s*/g) || [paragraph];
+      tokens.forEach(token => {
+        const next = line + token;
+        if (line && ctx.measureText(next).width > maxWidth) {
+          lines.push(line.trimEnd());
+          line = token.trimStart();
+        } else if (!line && ctx.measureText(token).width > maxWidth) {
+          let charLine = '';
+          for (const character of [...token]) {
+            const charNext = charLine + character;
+            if (charLine && ctx.measureText(charNext).width > maxWidth) {
+              lines.push(charLine);
+              charLine = character;
+            } else {
+              charLine = charNext;
+            }
+          }
+          line = charLine;
+        } else {
+          line = next;
+        }
+      });
+      if (line) lines.push(line.trimEnd());
     } else {
       let line = '';
       for (const character of [...paragraph]) {
@@ -921,6 +1099,22 @@ function wrapExcerptText(ctx, value, maxWidth, preserveLineBreaks = true) {
     lines.push('');
   });
   return lines.filter((line, index, all) => line || (index > 0 && index < all.length - 1));
+}
+
+function applyExcerptSmartQuotes(value) {
+  if (!excerptState.smartQuotes) return value;
+  let openDouble = true;
+  let openSingle = true;
+  return String(value).replace(/["']/g, mark => {
+    if (mark === '"') {
+      const next = openDouble ? '“' : '”';
+      openDouble = !openDouble;
+      return next;
+    }
+    const next = openSingle ? '‘' : '’';
+    openSingle = !openSingle;
+    return next;
+  });
 }
 
 function limitExcerptLines(lines, maxTextLines) {
@@ -941,7 +1135,7 @@ function drawExcerptCanvas() {
   const ctx = canvas.getContext('2d');
   const width = canvas.width;
   const height = canvas.height;
-  const margin = 76;
+  const margin = excerptState.margin;
   const textColor = excerptState.textColor;
   const isLightText = textColor === '#f4f4f5';
   const mutedColor = isLightText ? 'rgba(244,244,245,0.78)' : 'rgba(32,33,36,0.72)';
@@ -974,38 +1168,43 @@ function drawExcerptCanvas() {
     ctx.fillText(roundLabel, margin + labelPaddingX, 87);
   }
 
-  let quote = $('#excerptText').value.trim() || '발췌 텍스트를 입력해 주세요.';
+  let quote = applyExcerptSmartQuotes($('#excerptText').value.trim() || '명장면 본문을 입력해 주세요.');
   const quotePairs = { '"': '"', '“': '”' };
   if (quote.length >= 2 && quotePairs[quote[0]] === quote[quote.length - 1]) quote = quote.slice(1, -1).trim();
   const fontSize = excerptState.fontSize;
-  const lineHeight = Math.round(fontSize * 2.35);
-  const paragraphGap = Math.round(fontSize * 0.58);
+  const lineHeight = Math.round(fontSize * excerptState.lineHeightScale);
+  const paragraphGap = Math.round(excerptState.paragraphGap);
   ctx.font = `${fontSize}px ${excerptState.fontFamily}`;
   ctx.textBaseline = 'top';
   ctx.fillStyle = textColor;
-  const textWidth = Math.min(width - margin * 2, 850);
-  const maxTextLines = Math.min(9, Math.floor(640 / lineHeight) + 1);
+  const textWidth = Math.min(width - margin * 2, Math.round(width * 0.79));
+  const textBlockHeight = Math.max(260, Math.round(height * 0.59));
+  const maxTextLines = Math.min(11, Math.floor(textBlockHeight / lineHeight) + 1);
   const lines = limitExcerptLines(wrapExcerptText(ctx, quote, textWidth, excerptState.lineBreak), maxTextLines);
   const positionedLines = [];
   let lineOffset = 0;
+  let firstVisibleLine = true;
   lines.forEach(line => {
     if (line) {
-      positionedLines.push({ line, offset: lineOffset });
+      positionedLines.push({ line, offset: lineOffset, indent: excerptState.indent && firstVisibleLine });
       lineOffset += lineHeight;
+      firstVisibleLine = false;
     } else {
       lineOffset += paragraphGap;
     }
   });
   const lastLineOffset = positionedLines[positionedLines.length - 1]?.offset || 0;
-  const quoteCenterY = Math.round(height * 0.407);
+  const quoteCenterY = Math.round(height * (excerptState.ratio === '4:5' ? 0.38 : 0.407));
   const quoteTop = Math.round(quoteCenterY - lastLineOffset / 2);
-  positionedLines.forEach(({ line, offset }) => ctx.fillText(line, margin, quoteTop + offset));
+  positionedLines.forEach(({ line, offset, indent }) => {
+    ctx.fillText(line, margin + (indent ? Math.round(fontSize * 1.15) : 0), quoteTop + offset);
+  });
 
   const title = $('#excerptWorkTitle').value.trim() || '작품 제목';
   const author = $('#excerptAuthor').value.trim() || '작가';
   ctx.fillStyle = mutedColor;
   const lastLineY = quoteTop + lastLineOffset;
-  const metaY = Math.min(Math.max(lastLineY + fontSize + 76, 640), height - 190);
+  const metaY = Math.min(Math.max(lastLineY + fontSize + 76, Math.round(height * 0.59)), height - 190);
   ctx.font = `400 40px ${excerptState.fontFamily}`;
   ctx.fillText(title, margin, metaY);
   ctx.fillStyle = isLightText ? 'rgba(244,244,245,0.58)' : 'rgba(32,33,36,0.56)';
