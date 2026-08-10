@@ -1791,38 +1791,15 @@ async function migrateLegacyData(projectUrl) {
     if (error) throw error;
   }
 
-  let skippedSorts = 0;
   const histories = Array.isArray(legacyState.sortHistory) ? legacyState.sortHistory : [];
-  for (let index = 0; index < histories.length; index += 1) {
-    const history = histories[index];
-    const ranking = Array.isArray(history.ranking)
-      ? history.ranking.map(id => idMap.get(String(id))).filter(Boolean)
-      : [];
-    const roundSize = Number(history.roundSize || ranking.length);
-    if (ranking.length !== roundSize || roundSize < 4) {
-      skippedSorts += 1;
-      continue;
-    }
-    const legacyKey = await deterministicUuid(`sort:${userId}:${history.date || index}:${history.ranking.join(',')}`);
-    const { error } = await db.rpc('import_legacy_sort_result', {
-      p_legacy_key: legacyKey,
-      p_played_at: validDate(history.date),
-      p_round_size: roundSize,
-      p_ranking: ranking
-    });
-    if (error) {
-      console.warn('기존 소트 기록을 이전하지 못했습니다.', error);
-      skippedSorts += 1;
-    }
-  }
 
   localStorage.setItem(migrationKey, JSON.stringify({
     migratedAt: new Date().toISOString(),
     posts: validPosts.length,
     likes: likeRows.length,
     comments: commentRows.length,
-    sortRuns: histories.length - skippedSorts,
-    skippedSorts
+    sortRuns: 0,
+    skippedSorts: histories.length
   }));
 }
 
