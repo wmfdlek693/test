@@ -4,6 +4,7 @@ const LEGACY_POSTS_KEY = 'najjubtype-posts-v4';
 const LEGACY_STATE_KEY = 'najjubtype-state-v4';
 const SAVED_KEY = 'najjubtype-saved-v1';
 const MIGRATION_PREFIX = 'najjubtype-supabase-migration-v1:';
+const SHARE_URL = 'https://najjubtype.vercel.app/';
 const avatar = './assets/avatar_blank.png';
 
 let db = null;
@@ -448,7 +449,7 @@ async function sharePost(id) {
   const post = postById(id);
   if (!post) return;
   const text = `${post.title} — ${post.author}\n\n${post.quote}\n\n#NAJJUBTYPE`;
-  const url = safeLink(post.link) || location.href;
+  const url = SHARE_URL;
   try {
     if (navigator.share) await navigator.share({ title: post.title, text, url });
     else {
@@ -647,7 +648,7 @@ function matchCardHtml(post, side) {
     <div class="post-content"><h2 class="post-title">${esc(post.title)}</h2><p class="post-body">${esc(post.quote)}</p></div>
     <div class="post-actions"><div class="post-actions-left"><span class="vote-btn up">${icons.heart}<span>${likeCount(post)}</span></span><button class="toggle-comments" type="button" data-comment="${esc(post.id)}" aria-expanded="${open}">${icons.comment}<span>${comments.length}</span></button></div><div class="post-actions-right"><span class="post-icon-btn">${icons.bookmark}</span><span class="post-icon-btn">${icons.share}</span></div></div>
     ${post.reason ? `<div class="post-comment-bubble"><div class="post-comment-avatar"><img src="${avatar}" width="24" height="24" alt=""></div><p class="post-comment-text">${esc(post.reason)}</p></div>` : ''}
-    <div class="comments-section ${open ? 'open' : ''}"><div class="comment-list">${renderCommentsHTML(comments)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea placeholder="공감할래말래" rows="1" maxlength="500"></textarea><div class="comment-form-row"><button class="btn" type="button" data-submit-comment="${esc(post.id)}">등록</button></div></div></div>
+    <div class="comments-section ${open ? 'open' : ''}"><div class="comment-list">${renderCommentsHTML(comments)}</div><div class="add-comment-form"><div class="comment-input-header"><img src="${avatar}" alt=""><span>익명</span></div><textarea placeholder="냐쭙타입에게 힘이 되는 한마디 남기기" rows="1" maxlength="500"></textarea><div class="comment-form-row"><button class="btn" type="button" data-submit-comment="${esc(post.id)}">등록</button></div></div></div>
   </div></article>`;
 }
 
