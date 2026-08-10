@@ -33,7 +33,7 @@ let excerptState = {
   indent: false,
   smartQuotes: true,
   wrapMode: 'char',
-  textAlign: 'center',
+  textAlign: 'left',
   image: null,
   imageFileName: '',
   imageFit: 'cover',
@@ -634,8 +634,8 @@ function initExcerptMaker() {
             </div>
             <div class="excerpt-text-layout-row">
               <div class="excerpt-layout-switch excerpt-align-switch" aria-label="텍스트 정렬">
-                <button type="button" data-excerpt-align="left" aria-label="왼쪽 정렬" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h13M4 10h9M4 14h13M4 18h9"/></svg></button>
-                <button class="active" type="button" data-excerpt-align="center" aria-label="가운데 정렬" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6h13M7.5 10h9M5.5 14h13M7.5 18h9"/></svg></button>
+                <button class="active" type="button" data-excerpt-align="left" aria-label="왼쪽 정렬" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h13M4 10h9M4 14h13M4 18h9"/></svg></button>
+                <button type="button" data-excerpt-align="center" aria-label="가운데 정렬" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6h13M7.5 10h9M5.5 14h13M7.5 18h9"/></svg></button>
                 <button type="button" data-excerpt-align="right" aria-label="오른쪽 정렬" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h13M11 10h9M7 14h13M11 18h9"/></svg></button>
                 <button type="button" data-excerpt-align="justify" aria-label="양쪽 정렬" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg></button>
               </div>
@@ -907,7 +907,7 @@ function openExcerptMaker(post, options = {}) {
   excerptState.indent = false;
   excerptState.smartQuotes = true;
   excerptState.wrapMode = 'char';
-  excerptState.textAlign = 'center';
+  excerptState.textAlign = 'left';
   excerptState.image = null;
   excerptState.imageFileName = '';
   excerptState.imageFit = 'cover';
@@ -943,7 +943,7 @@ function openExcerptMaker(post, options = {}) {
   setExcerptRatio('1:1');
   setExcerptActive('[data-excerpt-bg]', $('[data-excerpt-bg="dark"]'));
   setExcerptActive('[data-excerpt-font]', $('[data-excerpt-font="Pretendard, sans-serif"]'));
-  setExcerptActive('[data-excerpt-align]', $('[data-excerpt-align="center"]'));
+  setExcerptActive('[data-excerpt-align]', $('[data-excerpt-align="left"]'));
   setExcerptActive('[data-excerpt-wrap]', $('[data-excerpt-wrap="char"]'));
   setExcerptActive('[data-excerpt-color]', $('[data-excerpt-color="#f4f4f5"]'));
   setExcerptActive('[data-excerpt-image-fit]', $('[data-excerpt-image-fit="cover"]'));
